@@ -1,0 +1,13 @@
+{
+    "version": 7,
+    "configurePresets": [
+        {
+            "name": "default",
+            "description": "Cross-Compiler for MCXN947 with Ninja",
+            "hidden": false,
+            "generator": "Ninja",
+            "binaryDir": "${workspaceFolder}/build",
+            "toolchainFile": "${workspaceFolder}/arm-toolchain.cmake"
+        }
+    ]
+}

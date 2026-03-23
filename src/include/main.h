@@ -1,0 +1,47 @@
+#ifndef MAIN_H
+#define MAIN_H
+
+#include "my_interrupts.h"
+#include "oled.h"
+
+/* Main Menu defines */
+#define APP_1 0x01
+#define APP_2 0x02
+#define APP_ERROR 0x04
+#define STATUS_ON 0x01
+#define STATUS_OFF 0x01
+#define STATUS_ERROR 0x04
+
+/* APP 1 defines */
+#define MAX_DELAY 200
+#define MIN_DELAY 10
+#define TIMER_DELAY_DONE 0x02
+
+/* Structure for different I/O pins on the shield for quick access */
+typedef struct {
+  GPIO_Type *gpio;
+  uint32_t pin;
+} SHIELD_Pins_t; 
+
+/* LED Ring Init */
+SHIELD_Pins_t LEDs[] = {
+		{GPIO4, SHIELD_INITLEDS_D1_GPIO_PIN},
+		{GPIO0, SHIELD_INITLEDS_D2_GPIO_PIN},
+		{GPIO0, SHIELD_INITLEDS_D3_GPIO_PIN},
+		{GPIO0, SHIELD_INITLEDS_D4_GPIO_PIN},
+		{GPIO2, SHIELD_INITLEDS_D5_GPIO_PIN},
+		{GPIO2, SHIELD_INITLEDS_D6_GPIO_PIN},
+		{GPIO2, SHIELD_INITLEDS_D7_GPIO_PIN},
+		{GPIO2, SHIELD_INITLEDS_D8_GPIO_PIN}
+}; 
+const uint8_t num_leds = sizeof(LEDs) / sizeof(SHIELD_Pins_t); 
+
+/* DIP Switches Init */
+SHIELD_Pins_t SWITCH[] = {
+	{SHIELD_INITDIPSWITCH_SW_DIP_1_GPIO, SHIELD_INITDIPSWITCH_SW_DIP_1_GPIO_PIN},
+	{SHIELD_INITDIPSWITCH_SW_DIP_2_GPIO, SHIELD_INITDIPSWITCH_SW_DIP_2_GPIO_PIN}
+};
+const uint8_t num_switches = sizeof(SWITCH) / sizeof(SHIELD_Pins_t);
+
+#endif
+
