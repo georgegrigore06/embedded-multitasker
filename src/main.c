@@ -44,19 +44,20 @@ void main_menu_task(void *parameter)
 		uint8_t nr_apps = bits_counter(app);
 		if(nr_apps == 0)
 		{
-			ulTaskNotifyValueClear(app_handler[active_app], STATUS_ON);
+			xTaskNotify(app_handler[active_app], STATUS_OFF, eSetValueWithOverwrite);
 			active_app = 0;
 			xTaskNotify(oled_handler, STATUS_OFF, eSetValueWithOverwrite);
 		}
 		else if(nr_apps == 1) 
 		{
 			active_app = bit_position(app)+1;
+			vTaskResume(app_handler[active_app]);
 			xTaskNotify(app_handler[active_app], STATUS_ON, eSetBits);
 			xTaskNotify(oled_handler, app, eSetBits);
 		}
 		else
 		{
-			ulTaskNotifyValueClear(app_handler[active_app], STATUS_ON);
+			xTaskNotify(app_handler[active_app], STATUS_OFF, eSetValueWithOverwrite);
 			active_app = 0;
 			xTaskNotify(oled_handler, STATUS_ERROR, eSetBits);
 		}
@@ -98,18 +99,20 @@ void app_1_task(void *parameter) {
 	uint32_t delay = 0;
 	uint32_t notifBits;
 	bool isOn = 0;
+	bool direction = 0;
 	while(1)
   	{
-		xTaskNotifyWait(0, TIMER_DELAY_DONE, &notifBits, portMAX_DELAY);
+		xTaskNotifyWait(0, TIMER_DELAY_DONE | CHANGED_DIRECTION, &notifBits, portMAX_DELAY);
 		if(notifBits & STATUS_ON)
 		{
+			if(notifBits & CHANGED_DIRECTION) direction = !direction;
+			uint32_t delay = MAX_DELAY - (uint32_t)((potValue * (MAX_DELAY - MIN_DELAY)) / UINT16_MAX);
+			CTIMER0->MR[CTIMER0_MATCH_0_CHANNEL] = delay;
+			if(CTIMER0->TC > delay) CTIMER0->TC = 0;
 			if(!isOn) { 
 				CTIMER_StartTimer(CTIMER0);
 				isOn = 1;
 			}
-			uint32_t delay = MAX_DELAY - (uint32_t)((potValue * (MAX_DELAY - MIN_DELAY)) / UINT16_MAX);
-			CTIMER0->MR[CTIMER0_MATCH_0_CHANNEL] = delay;
-			if(CTIMER0->TC > delay) CTIMER0->TC = 0;
 			GPIO_PinWrite(LEDs[old_led].gpio, LEDs[old_led].pin, 0);
 			GPIO_PinWrite(LEDs[current_led].gpio, LEDs[current_led].pin, 1);
 			old_led = current_led;
@@ -124,6 +127,7 @@ void app_1_task(void *parameter) {
 				GPIO_PinWrite(LEDs[i].gpio, LEDs[i].pin, 0);
 			}
 			isOn = 0;
+			vTaskSuspend(NULL);
 		}
   	}
 }
@@ -137,38 +141,48 @@ Second App
 void app_2_task(void *parameter)
 {
 	uint32_t notifBits;
-	bool lastStateA = GPIO_PinRead(SHIELD_INITROTARYENCODER_SW6_A_GPIO, SHIELD_INITROTARYENCODER_SW6_A_GPIO_PIN), stateA, stateB;
+	bool lastStateA = GPIO_PinRead(SHIELD_INITROTARYENCODER_SW6_A_GPIO, 
+									SHIELD_INITROTARYENCODER_SW6_A_GPIO_PIN), 
+	stateA, stateB;
 	uint8_t current_led = 0; 
 	uint8_t old_led = 0;
+	bool direction = 0;
 	while(1)
 	{
 		xTaskNotifyWait(0, 0x02, &notifBits, portMAX_DELAY);
-		stateA = GPIO_PinRead(SHIELD_INITROTARYENCODER_SW6_A_GPIO, SHIELD_INITROTARYENCODER_SW6_A_GPIO_PIN);
-		stateB = GPIO_PinRead(SHIELD_INITROTARYENCODER_SW6_B_GPIO, SHIELD_INITROTARYENCODER_SW6_B_GPIO_PIN);
-		if(stateA != lastStateA)
-		{
-			if(stateB != stateA)
+		if(notifBits & STATUS_ON) {
+			stateA = GPIO_PinRead(SHIELD_INITROTARYENCODER_SW6_A_GPIO, SHIELD_INITROTARYENCODER_SW6_A_GPIO_PIN);
+			stateB = GPIO_PinRead(SHIELD_INITROTARYENCODER_SW6_B_GPIO, SHIELD_INITROTARYENCODER_SW6_B_GPIO_PIN);
+			if(stateA != lastStateA)
 			{
-				direction = 1;
+				if(stateB != stateA)
+				{
+					direction = 1;
+				}
+				else
+				{
+					direction = 0;
+				}
+				lastStateA = stateA;
+			}
+			if(direction)
+			{
+				current_led = (current_led + 1) % num_leds;
 			}
 			else
 			{
-				direction = 0;
+				current_led = (current_led == 0) ? (num_leds - 1) : (current_led - 1);
 			}
-			lastStateA = stateA;
-		}
-		if(direction)
-		{
-			current_led = (current_led + 1) % num_leds;
+
+			GPIO_PinWrite(LEDs[old_led].gpio, LEDs[old_led].pin, 0);
+			GPIO_PinWrite(LEDs[current_led].gpio, LEDs[current_led].pin, 1);
+			old_led = current_led;
 		}
 		else
 		{
-			current_led = (current_led == 0) ? (num_leds - 1) : (current_led - 1);
+			GPIO_PinWrite(LEDs[current_led].gpio, LEDs[current_led].pin, 0);
+			vTaskSuspend(NULL);
 		}
-
-		GPIO_PinWrite(LEDs[old_led].gpio, LEDs[old_led].pin, 0);
-		GPIO_PinWrite(LEDs[current_led].gpio, LEDs[current_led].pin, 1);
-		old_led = current_led;
 	}
 }
 

@@ -1,7 +1,6 @@
 #include "my_interrupts.h"
 
 TaskHandle_t app_handler[3], oled_handler;
-volatile uint8_t direction = 0;
 
 void EDMA_0_CH1_IRQHandler(void)
 {
@@ -72,7 +71,7 @@ void GPIO4_INT_0_IRQHANDLER(void) {
   uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO4, 0U);
 
   /* Place your interrupt code here */
-  direction = !direction;
+  xTaskNotifyFromISR(app_handler[1], (1 << 2), eSetBits, NULL);
   
   /* Clear pin flags 0 */
   GPIO_GpioClearInterruptChannelFlags(GPIO4, pin_flags0, 0U); 
@@ -112,5 +111,5 @@ void CTIMER0_IRQHandler(void)
 }
 
 void ctimer0_callback(uint32_t flags) {
-	xTaskNotifyFromISR(app_handler[1], 0x02, eSetBits, NULL);
+	xTaskNotifyFromISR(app_handler[1], (1 << 1), eSetBits, NULL);
 }

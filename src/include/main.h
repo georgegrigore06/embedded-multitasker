@@ -9,13 +9,14 @@
 #define APP_2 0x02
 #define APP_ERROR 0x04
 #define STATUS_ON 0x01
-#define STATUS_OFF 0x01
+#define STATUS_OFF 0x00
 #define STATUS_ERROR 0x04
 
 /* APP 1 defines */
 #define MAX_DELAY 200
 #define MIN_DELAY 10
-#define TIMER_DELAY_DONE 0x02
+#define TIMER_DELAY_DONE (1U << 1)
+#define CHANGED_DIRECTION (1U << 2)
 
 /* Structure for different I/O pins on the shield for quick access */
 typedef struct {

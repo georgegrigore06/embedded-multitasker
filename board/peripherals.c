@@ -482,7 +482,7 @@ instance:
       - 1:
         - matchChannelPrefixId: 'Match_0'
         - matchChannel: 'kCTIMER_Match_0'
-        - matchValueStr: '250 ms'
+        - matchValueStr: '10 ms'
         - enableCounterReset: 'true'
         - enableCounterStop: 'false'
         - outControl: 'kCTIMER_Output_NoAction'
@@ -512,7 +512,7 @@ const ctimer_match_config_t CTIMER0_Match_3_config = {
   .enableInterrupt = false
 };
 const ctimer_match_config_t CTIMER0_Match_0_config = {
-  .matchValue = 249,
+  .matchValue = 9,
   .enableCounterReset = true,
   .enableCounterStop = false,
   .outControl = kCTIMER_Output_NoAction,
