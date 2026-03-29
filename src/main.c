@@ -68,11 +68,16 @@ void oled_task(void *parameter)
 {
 	uint32_t notifBits;
 	initOLED();
+	sendOLED(nxp_logo_frame, 1024, OLED_DATA);
 	while(1)
 	{
 		xTaskNotifyWait(0, ULONG_MAX, &notifBits, portMAX_DELAY);
 		resetOLED();
-		if(notifBits & APP_1)
+		if(notifBits == 0)
+		{
+			sendOLED(nxp_logo_frame, 1024, OLED_DATA);
+		}
+		else if(notifBits & APP_1)
 		{
 			printfOLED("Press SW1 to change  LEDs light direction.\nReset all DP switchesto go back to the    main menu.");
 		}
@@ -105,14 +110,14 @@ void app_1_task(void *parameter) {
 		xTaskNotifyWait(0, TIMER_DELAY_DONE | CHANGED_DIRECTION, &notifBits, portMAX_DELAY);
 		if(notifBits & STATUS_ON)
 		{
-			if(notifBits & CHANGED_DIRECTION) direction = !direction;
-			uint32_t delay = MAX_DELAY - (uint32_t)((potValue * (MAX_DELAY - MIN_DELAY)) / UINT16_MAX);
-			CTIMER0->MR[CTIMER0_MATCH_0_CHANNEL] = delay;
-			if(CTIMER0->TC > delay) CTIMER0->TC = 0;
 			if(!isOn) { 
 				CTIMER_StartTimer(CTIMER0);
 				isOn = 1;
 			}
+			if(notifBits & CHANGED_DIRECTION) direction = !direction;
+			uint32_t delay = MAX_DELAY - (uint32_t)((potValue * (MAX_DELAY - MIN_DELAY)) / UINT16_MAX);
+			CTIMER0->MR[CTIMER0_MATCH_0_CHANNEL] = delay;
+			if(CTIMER0->TC > delay) CTIMER_Reset(CTIMER0);
 			GPIO_PinWrite(LEDs[old_led].gpio, LEDs[old_led].pin, 0);
 			GPIO_PinWrite(LEDs[current_led].gpio, LEDs[current_led].pin, 1);
 			old_led = current_led;
