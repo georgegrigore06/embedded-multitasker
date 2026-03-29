@@ -111,5 +111,7 @@ void CTIMER0_IRQHandler(void)
 }
 
 void ctimer0_callback(uint32_t flags) {
-	xTaskNotifyFromISR(app_handler[1], (1 << 1), eSetBits, NULL);
+  BaseType_t xHigherPriorityWasWoken = pdFALSE;
+	xTaskNotifyFromISR(app_handler[1], (1 << 1), eSetBits, &xHigherPriorityWasWoken);
+  portYIELD_FROM_ISR(xHigherPriorityWasWoken);
 }

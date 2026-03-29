@@ -39,6 +39,7 @@
  ******************************************************************************/
 extern uint8_t currCharLoc[2];
 extern const char font[256][6];
+extern uint8_t nxp_logo_frame[1024];
 extern lpi2c_master_transfer_t masterxfer;
 extern bool g_MasterCompletionFlag;
 
@@ -51,7 +52,7 @@ extern void writeChar(uint8_t character);
 extern void printfOLED(const char* format, ...);
 extern void setPage(uint8_t page);
 extern void setSeg(uint8_t seg);
-extern void fillOLED();
+extern void fillOLED(uint8_t data);
 extern void lineWrap(void);
 extern void printVar(char* formatting, int32_t var, uint8_t seg, uint8_t page);
 extern void resetOLED(void);
