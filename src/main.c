@@ -36,6 +36,7 @@ uint8_t bit_position(uint8_t bits)
 void main_menu_task(void *parameter)
 {
 	uint8_t active_app = 0;
+	CTIMER_StartTimer(CTIMER0);
 	while(1)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
@@ -103,17 +104,12 @@ void app_1_task(void *parameter) {
 	uint8_t old_led = 0; 
 	uint32_t delay = 0;
 	uint32_t notifBits;
-	bool isOn = 0;
 	bool direction = 0;
 	while(1)
   	{
 		xTaskNotifyWait(0, TIMER_DELAY_DONE | CHANGED_DIRECTION, &notifBits, portMAX_DELAY);
 		if(notifBits & STATUS_ON)
 		{
-			if(!isOn) { 
-				CTIMER_StartTimer(CTIMER0);
-				isOn = 1;
-			}
 			if(notifBits & CHANGED_DIRECTION) direction = !direction;
 			uint32_t delay = MAX_DELAY - (uint32_t)((potValue * (MAX_DELAY - MIN_DELAY)) / UINT16_MAX);
 			CTIMER0->MR[CTIMER0_MATCH_0_CHANNEL] = delay;
@@ -126,12 +122,10 @@ void app_1_task(void *parameter) {
 		}
 		else
 		{
-			CTIMER_StopTimer(CTIMER0);
 			for(int i=0; i<num_leds; ++i)
 			{
 				GPIO_PinWrite(LEDs[i].gpio, LEDs[i].pin, 0);
 			}
-			isOn = 0;
 			vTaskSuspend(NULL);
 		}
   	}
@@ -196,7 +190,7 @@ int main() {
 	xTaskCreate(main_menu_task, "Main Menu", 50, NULL, 3, &app_handler[0]);
   	xTaskCreate(app_1_task, "App 1", 50, NULL, 2, &app_handler[1]);
 	xTaskCreate(app_2_task, "App 2", 50, NULL, 2, &app_handler[2]);
-	xTaskCreate(oled_task, "OLED Display", 1024, NULL, 1, &oled_handler);
+	xTaskCreate(oled_task, "OLED Display", 500, NULL, 1, &oled_handler);
 
 	BOARD_InitBootClocks();
   	BOARD_InitBootPins();
