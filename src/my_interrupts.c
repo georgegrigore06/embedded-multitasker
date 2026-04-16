@@ -30,6 +30,24 @@ void lpi2c_master_callback(LPI2C_Type *base, lpi2c_master_edma_handle_t *handle,
   
 }
 
+/* GPIO00_IRQn interrupt handler */
+void GPIO0_INT_0_IRQHANDLER(void) {
+  /* Get pin flags 0 */
+  uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO0, 0U);
+
+  /* Place your interrupt code here */
+  xTaskNotifyFromISR(app_handler[2], 0x04, eSetBits, NULL);
+  /* Clear pin flags 0 */
+  GPIO_GpioClearInterruptChannelFlags(GPIO0, pin_flags0, 0U); 
+
+  /* Add for ARM errata 838869, affects Cortex-M4, Cortex-M4F
+     Store immediate overlapping exception return operation might vector to incorrect interrupt. */
+  #if defined __CORTEX_M && (__CORTEX_M == 4U)
+    __DSB();
+  #endif
+}
+
+
 
 /* GPIO10_IRQn interrupt handler */
 void GPIO1_INT_0_IRQHANDLER(void) {

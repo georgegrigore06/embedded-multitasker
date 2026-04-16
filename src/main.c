@@ -40,6 +40,7 @@ void main_menu_task(void *parameter)
 	while(1)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+		vTaskDelay(pdMS_TO_TICKS(1)); // Added delay to prevent switch debouncing
 		uint8_t app = (!(GPIO_PinRead(SWITCH[0].gpio, SWITCH[0].pin))) |
 					   (!(GPIO_PinRead(SWITCH[1].gpio, SWITCH[1].pin)) << 1);
 		uint8_t nr_apps = bits_counter(app);
@@ -54,13 +55,13 @@ void main_menu_task(void *parameter)
 			active_app = bit_position(app)+1;
 			vTaskResume(app_handler[active_app]);
 			xTaskNotify(app_handler[active_app], STATUS_ON, eSetBits);
-			xTaskNotify(oled_handler, app, eSetBits);
+			xTaskNotify(oled_handler, app, eSetValueWithOverwrite);
 		}
 		else
 		{
 			xTaskNotify(app_handler[active_app], STATUS_OFF, eSetValueWithOverwrite);
 			active_app = 0;
-			xTaskNotify(oled_handler, STATUS_ERROR, eSetBits);
+			xTaskNotify(oled_handler, STATUS_ERROR, eSetValueWithOverwrite);
 		}
 	}
 }
@@ -72,23 +73,23 @@ void oled_task(void *parameter)
 	sendOLED(nxp_logo_frame, 1024, OLED_DATA);
 	while(1)
 	{
-		xTaskNotifyWait(0, ULONG_MAX, &notifBits, portMAX_DELAY);
+		xTaskNotifyWait(notifBits, ULONG_MAX, &notifBits, portMAX_DELAY);
 		resetOLED();
-		if(notifBits == 0)
+		if(notifBits == APP_ERROR)
+		{
+			printfOLED("Error\nTurn off one switch");
+		}
+		else if(notifBits == 0)
 		{
 			sendOLED(nxp_logo_frame, 1024, OLED_DATA);
 		}
-		else if(notifBits & APP_1)
+		else if(notifBits == APP_1)
 		{
 			printfOLED("Press SW1 to change  LEDs light direction.\nReset all DP switchesto go back to the    main menu.");
 		}
-		else if(notifBits & APP_2)
+		else if(notifBits == APP_2)
 		{
 			printfOLED("Use rotary encoder tochange LED direction.\nReset all DP switchesto go back to the    main menu.");
-		}
-		else if(notifBits & APP_ERROR)
-		{
-			printfOLED("Error\nTurn off one switch");
 		}
 	}
 }
@@ -134,55 +135,118 @@ void app_1_task(void *parameter) {
 /* 
 Second App
 	- Dedicated to SW_DIP_2
-	- Rotary Encoder creates an illusion of LED tail, where every step leaves behind
-	  a trace of it's intensity		
+	- Rotary Encoder state machine application with LED ring 		
 */
 void app_2_task(void *parameter)
 {
-	uint32_t notifBits;
-	bool lastStateA = GPIO_PinRead(SHIELD_INITROTARYENCODER_SW6_A_GPIO, 
-									SHIELD_INITROTARYENCODER_SW6_A_GPIO_PIN), 
-	stateA, stateB;
-	uint8_t current_led = 0; 
-	uint8_t old_led = 0;
-	bool direction = 0;
-	while(1)
-	{
-		xTaskNotifyWait(0, 0x02, &notifBits, portMAX_DELAY);
-		if(notifBits & STATUS_ON) {
-			stateA = GPIO_PinRead(SHIELD_INITROTARYENCODER_SW6_A_GPIO, SHIELD_INITROTARYENCODER_SW6_A_GPIO_PIN);
-			stateB = GPIO_PinRead(SHIELD_INITROTARYENCODER_SW6_B_GPIO, SHIELD_INITROTARYENCODER_SW6_B_GPIO_PIN);
-			if(stateA != lastStateA)
-			{
-				if(stateB != stateA)
-				{
-					direction = 1;
-				}
-				else
-				{
-					direction = 0;
-				}
-				lastStateA = stateA;
-			}
-			if(direction)
-			{
-				current_led = (current_led + 1) % num_leds;
-			}
-			else
-			{
-				current_led = (current_led == 0) ? (num_leds - 1) : (current_led - 1);
-			}
+    uint32_t notifBits;
+    bool lastStateA = GPIO_PinRead(SHIELD_INITROTARYENCODER_SW6_A_GPIO, SHIELD_INITROTARYENCODER_SW6_A_GPIO_PIN), stateA, stateB;
+    uint8_t current_led = 0; 
+    uint8_t old_led = 0;
+    bool direction = 0;
+    uint8_t ledsOn = 0;
+    int8_t offDirection = 0;
 
-			GPIO_PinWrite(LEDs[old_led].gpio, LEDs[old_led].pin, 0);
-			GPIO_PinWrite(LEDs[current_led].gpio, LEDs[current_led].pin, 1);
-			old_led = current_led;
-		}
-		else
-		{
-			GPIO_PinWrite(LEDs[current_led].gpio, LEDs[current_led].pin, 0);
-			vTaskSuspend(NULL);
-		}
-	}
+    typedef enum {
+        REDUCING,
+        SWITCHING,
+		IDLE
+    } AppMode;
+
+    AppMode currentMode = IDLE;
+
+    while(1)
+    {
+        xTaskNotifyWait(0, ENCODER_CHANGED_STATE | ENCODER_BUTTON_PRESSED, &notifBits, portMAX_DELAY);
+
+        if(notifBits & STATUS_ON) {
+            if(notifBits & ENCODER_BUTTON_PRESSED)
+            {
+                for(int i=0; i<num_leds; ++i)
+                {
+                    GPIO_PinWrite(LEDs[i].gpio, LEDs[i].pin, 1);
+                }
+                ledsOn = num_leds;
+                current_led = 0;
+                old_led = 0;
+                offDirection = 0;
+                currentMode = REDUCING;
+            }
+            else 
+            {
+                stateA = GPIO_PinRead(SHIELD_INITROTARYENCODER_SW6_A_GPIO, SHIELD_INITROTARYENCODER_SW6_A_GPIO_PIN);
+                stateB = GPIO_PinRead(SHIELD_INITROTARYENCODER_SW6_B_GPIO, SHIELD_INITROTARYENCODER_SW6_B_GPIO_PIN);
+                
+                if(stateA != lastStateA)
+                {
+                    direction = (stateB != stateA);
+                    lastStateA = stateA;
+
+					/* Button has been pressed and there is more than one LED turned on */
+                    if(currentMode == REDUCING)
+                    {
+                        int8_t currentDir = direction ? 1 : -1;
+                        
+                        if(offDirection == 0) offDirection = currentDir;
+
+						/* The Rotary Encoder is rotated in the same direction that initialized the reducing direction */
+                        if(currentDir == offDirection)
+                        {
+                            if(ledsOn > 1)
+                            {
+                                int target = (offDirection == 1) ? (num_leds - ledsOn + 1) : (ledsOn - 1);
+                                GPIO_PinWrite(LEDs[target].gpio, LEDs[target].pin, 0);
+                                ledsOn--;
+                            }
+                        }
+						/* Else, the LEDs that were turned off on the way should be turned back on with each rotation */
+                        else
+                        {
+                            if(ledsOn < num_leds)
+                            {
+                                ledsOn++;
+                                int target = (offDirection == 1) ? (num_leds - ledsOn + 1) : (ledsOn - 1);
+                                GPIO_PinWrite(LEDs[target].gpio, LEDs[target].pin, 1);
+                                if(ledsOn == num_leds) offDirection = 0;
+                            }
+                        }
+
+						/* If we have only one LED on, we need to change states */
+                        if(ledsOn == 1) 
+                        {
+                            currentMode = SWITCHING;
+                            current_led = 0;
+                            old_led = 0;
+                        }
+                    }
+                    else if(currentMode == SWITCHING)
+                    {
+                        old_led = current_led;
+                        if(direction)
+                        {
+                            current_led = (current_led + 1) % num_leds;
+                        }
+                        else
+                        {
+                            current_led = (current_led == 0) ? (num_leds - 1) : (current_led - 1);
+                        }
+                        GPIO_PinWrite(LEDs[old_led].gpio, LEDs[old_led].pin, 0);
+                        GPIO_PinWrite(LEDs[current_led].gpio, LEDs[current_led].pin, 1);
+                    }
+                }
+            }
+        }
+        else
+        {
+            ledsOn = 0;
+			currentMode = IDLE;
+            for(int i=0; i<num_leds; ++i)
+            {
+                GPIO_PinWrite(LEDs[i].gpio, LEDs[i].pin, 0);
+            }
+            vTaskSuspend(NULL);
+        }
+    }
 }
 
 int main() {

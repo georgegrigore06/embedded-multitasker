@@ -137,6 +137,16 @@ extern "C" {
 #define GPIO3_INT_0_IRQ_PRIORITY 2
 /* GPIO3 interrupt handler identifier. */
 #define GPIO3_INT_0_IRQHANDLER GPIO30_IRQHandler
+/* Alias for GPIO0 peripheral */
+#define GPIO0_GPIO GPIO0
+/* Alias for PORT0 */
+#define GPIO0_PORT PORT0
+/* GPIO0 interrupt vector ID (number). */
+#define GPIO0_INT_0_IRQN GPIO00_IRQn
+/* GPIO0 interrupt vector priority. */
+#define GPIO0_INT_0_IRQ_PRIORITY 2
+/* GPIO0 interrupt handler identifier. */
+#define GPIO0_INT_0_IRQHANDLER GPIO00_IRQHandler
 
 /***********************************************************************************************************************
  * Global variables

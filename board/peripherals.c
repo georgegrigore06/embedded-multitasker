@@ -92,7 +92,7 @@ instance:
         - apiMode: 'nontransTCD'
         - edma_channel:
           - channel_prefix_id: 'CH0'
-          - uid: '1773175247801'
+          - uid: '1775637469087'
           - eDMAn: '0'
           - eDMA_source: 'kDma0RequestMuxAdc0FifoARequest'
           - init_channel_priority: 'false'
@@ -110,7 +110,7 @@ instance:
           - 0:
             - TCD_REGS:
               - edma4_tcd: []
-            - uid: '1773304327639'
+            - uid: '1775637469097'
             - tcdID: 'CH0_TCD0'
             - ssize: 'kEDMA_TransferSize2Bytes'
             - saddr_expr: '&(ADC0->RESFIFO[0])'
@@ -129,22 +129,22 @@ instance:
               - offsetType: 'disabled'
               - mloff: '0'
             - enableChannelLinkMinor: 'false'
-            - linkedChannelMinor: '1773175247801'
+            - linkedChannelMinor: '1775637469087'
             - bandwidthControl: 'disabled'
             - citer: '1'
             - slast: '0'
             - esda: 'false'
             - eeop: 'false'
             - enableChannelLinkMajor: 'false'
-            - linkedChannelMajor: '1773175247801'
+            - linkedChannelMajor: '1775637469087'
             - disableERQ: 'false'
             - enableScatterGather: 'true'
-            - sga: '1773833603239'
+            - sga: '1775637469092'
             - interruptSources: ''
           - 1:
             - TCD_REGS:
               - edma4_tcd: []
-            - uid: '1773833603239'
+            - uid: '1775637469092'
             - tcdID: 'CH0_TCD1'
             - ssize: 'kEDMA_TransferSize2Bytes'
             - saddr_expr: '&(ADC0->RESFIFO[0])'
@@ -163,21 +163,21 @@ instance:
               - offsetType: 'disabled'
               - mloff: '0'
             - enableChannelLinkMinor: 'false'
-            - linkedChannelMinor: '1773175247801'
+            - linkedChannelMinor: '1775637469087'
             - bandwidthControl: 'disabled'
             - citer: '1'
             - slast: '0'
             - esda: 'false'
             - eeop: 'false'
             - enableChannelLinkMajor: 'false'
-            - linkedChannelMajor: '1773175247801'
+            - linkedChannelMajor: '1775637469087'
             - disableERQ: 'false'
             - enableScatterGather: 'true'
-            - sga: '1773304327639'
+            - sga: '1775637469097'
             - interruptSources: ''
         - constantTCD: 'false'
-        - no_init_uid: '1773175247820'
-        - initializedTCD: '1773304327639'
+        - no_init_uid: '1775637469095'
+        - initializedTCD: '1775637469097'
         - channel_enabled_interrupts: ''
         - init_interruptsEnable: 'false'
         - interrupt_channel:
@@ -468,12 +468,12 @@ instance:
       - clockSource: 'FunctionClock'
       - clockSourceFreq: 'ClocksTool_DefaultInit'
       - timerPrescaler: '1 ms'
-    - EnableTimerInInit: 'false'
+    - EnableTimerInInit: 'true'
     - matchChannels:
       - 0:
         - matchChannelPrefixId: 'Match_3'
         - matchChannel: 'kCTIMER_Match_3'
-        - matchValueStr: '1 ms'
+        - matchValueStr: '10 ms'
         - enableCounterReset: 'false'
         - enableCounterStop: 'false'
         - outControl: 'kCTIMER_Output_Toggle'
@@ -504,7 +504,7 @@ const ctimer_config_t CTIMER0_config = {
   .prescale = 47999
 };
 const ctimer_match_config_t CTIMER0_Match_3_config = {
-  .matchValue = 0,
+  .matchValue = 9,
   .enableCounterReset = false,
   .enableCounterStop = false,
   .outControl = kCTIMER_Output_Toggle,
@@ -532,6 +532,8 @@ static void CTIMER0_init(void) {
   /* Match channel 0 of CTIMER0 peripheral initialization */
   CTIMER_SetupMatch(CTIMER0_PERIPHERAL, CTIMER0_MATCH_0_CHANNEL, &CTIMER0_Match_0_config);
   CTIMER_RegisterCallBack(CTIMER0_PERIPHERAL, CTIMER0_callback, kCTIMER_SingleCallback);
+  /* Start the timer */
+  CTIMER_StartTimer(CTIMER0_PERIPHERAL);
 }
 
 /***********************************************************************************************************************
@@ -556,6 +558,7 @@ instance:
       - 3: []
       - 4: []
       - 5: []
+      - 6: []
     - interrupts:
       - 0:
         - channelId: 'int_0'
@@ -745,7 +748,7 @@ instance:
         - data_size_i: '1024'
     - channel_rx_init: 'true'
     - channel_rx:
-      - uid: '1774181647316'
+      - uid: '1775637469099'
       - eDMAn: '2'
       - eDMA_source: 'kDma0RequestMuxLpFlexcomm2Rx'
       - init_channel_priority: 'false'
@@ -759,7 +762,7 @@ instance:
       - enable_custom_name: 'false'
     - channel_tx_init: 'true'
     - channel_tx:
-      - uid: '1774181647323'
+      - uid: '1775637469102'
       - eDMAn: '1'
       - eDMA_source: 'kDma0RequestMuxLpFlexcomm2Tx'
       - init_channel_priority: 'false'
@@ -879,6 +882,53 @@ static void GPIO3_init(void) {
 }
 
 /***********************************************************************************************************************
+ * GPIO0 initialization code
+ **********************************************************************************************************************/
+/* clang-format off */
+/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+instance:
+- name: 'GPIO0'
+- type: 'gpio'
+- mode: 'GPIO'
+- custom_name_enabled: 'false'
+- type_id: 'gpio_2.7.0'
+- functional_group: 'BOARD_InitPeripherals'
+- peripheral: 'GPIO0'
+- config_sets:
+  - fsl_gpio:
+    - enable_irq: 'true'
+    - port_interrupt:
+      - IRQn: 'GPIO00_IRQn'
+      - enable_interrrupt: 'enabled'
+      - enable_priority: 'true'
+      - priority: '2'
+      - enable_custom_name: 'false'
+    - enable_irq_1: 'false'
+    - gpio_interrupt_1:
+      - IRQn: 'GPIO01_IRQn'
+      - enable_interrrupt: 'enabled'
+      - enable_priority: 'false'
+      - priority: '1'
+      - enable_custom_name: 'false'
+    - enable_irq_EFT: 'false'
+    - port_interrupt_EFT:
+      - IRQn: 'noInt'
+      - enable_interrrupt: 'enabled'
+      - enable_priority: 'false'
+      - priority: '2'
+      - enable_custom_name: 'false'
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
+/* clang-format on */
+
+static void GPIO0_init(void) {
+  /* Make sure, the clock gate for port 0 is enabled (e. g. in pin_mux.c) */
+  /* Interrupt vector GPIO00_IRQn priority settings in the NVIC. */
+  NVIC_SetPriority(GPIO0_INT_0_IRQN, GPIO0_INT_0_IRQ_PRIORITY);
+  /* Enable interrupt GPIO0_INT_0_IRQN request in the NVIC */
+  EnableIRQ(GPIO0_INT_0_IRQN);
+}
+
+/***********************************************************************************************************************
  * Initialization functions
  **********************************************************************************************************************/
 static void BOARD_InitPeripherals_CommonPostInit(void)
@@ -905,6 +955,7 @@ void BOARD_InitPeripherals(void)
   GPIO4_init();
   LP_FLEXCOMM2_init();
   GPIO3_init();
+  GPIO0_init();
   /* Common post-initialization */
   BOARD_InitPeripherals_CommonPostInit();
 }

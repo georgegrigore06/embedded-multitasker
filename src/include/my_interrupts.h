@@ -12,6 +12,7 @@
 extern TaskHandle_t app_handler[3], oled_handler;
 extern volatile uint8_t direction;
 
+void GPIO0_INT_0_IRQHANDLER(void);
 void GPIO1_INT_0_IRQHANDLER(void);
 void GPIO2_INT_0_IRQHANDLER(void);
 void GPIO4_INT_0_IRQHANDLER(void);

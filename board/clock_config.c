@@ -68,6 +68,7 @@ outputs:
 - {id: CLK_144M_clock.outFreq, value: 144 MHz}
 - {id: CLK_48M_clock.outFreq, value: 48 MHz}
 - {id: CTIMER0_clock.outFreq, value: 48 MHz}
+- {id: CTIMER1_clock.outFreq, value: 48 MHz}
 - {id: FLEXCOMM2_clock.outFreq, value: 12 MHz}
 - {id: FREQME_reference_clock.outFreq, value: 144 MHz}
 - {id: FREQME_target_clock.outFreq, value: 144 MHz}
@@ -81,9 +82,11 @@ outputs:
 settings:
 - {id: ADC0CLKDIV_HALT, value: Enable}
 - {id: CTIMER0CLKDIV_HALT, value: Enable}
+- {id: CTIMER1CLKDIV_HALT, value: Enable}
 - {id: FLEXCOMM2CLKDIV_HALT, value: Enable}
 - {id: SYSCON.ADC0CLKSEL.sel, value: SCG.FRO_12M}
 - {id: SYSCON.CTIMERCLKSEL0.sel, value: SCG.FRO_HF}
+- {id: SYSCON.CTIMERCLKSEL1.sel, value: SCG.FRO_HF}
 - {id: SYSCON.FCCLKSEL2.sel, value: SCG.FRO_12M}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
 /* clang-format on */
@@ -138,12 +141,14 @@ void BOARD_BootClockRUN(void)
     CLOCK_AttachClk(kFRO_HF_to_FLEXSPI);                 /*!< Switch FLEXSPI to FRO_HF */
     CLOCK_AttachClk(kFRO12M_to_ADC0);                 /*!< Switch ADC0 to FRO12M */
     CLOCK_AttachClk(kFRO_HF_to_CTIMER0);                 /*!< Switch CTIMER0 to FRO_HF */
+    CLOCK_AttachClk(kFRO_HF_to_CTIMER1);                 /*!< Switch CTIMER1 to FRO_HF */
     CLOCK_AttachClk(kFRO12M_to_FLEXCOMM2);                 /*!< Switch FLEXCOMM2 to FRO12M */
 
     /*!< Set up dividers */
     CLOCK_SetClkDiv(kCLOCK_DivAhbClk, 1U);           /*!< Set AHBCLKDIV divider to value 1 */
     CLOCK_SetClkDiv(kCLOCK_DivAdc0Clk, 1U);           /*!< Set ADC0CLKDIV divider to value 1 */
     CLOCK_SetClkDiv(kCLOCK_DivCtimer0Clk, 1U);           /*!< Set CTIMER0CLKDIV divider to value 1 */
+    CLOCK_SetClkDiv(kCLOCK_DivCtimer1Clk, 1U);           /*!< Set CTIMER1CLKDIV divider to value 1 */
     CLOCK_SetClkDiv(kCLOCK_DivFlexcom2Clk, 1U);           /*!< Set FLEXCOMM2CLKDIV divider to value 1 */
 
     /* Set SystemCoreClock variable */

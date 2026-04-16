@@ -521,7 +521,7 @@ SHIELD_InitRotaryEncoder:
   - {pin_num: L16, peripheral: GPIO3, signal: 'GPIO, 21', pin_signal: PIO3_21/TRIG_OUT1/FC8_P5/FC6_P1/CT2_MAT3/PWM1_B3/FLEXIO0_D29/SMARTDMA_PIO21/SIM0_RST/SAI1_RXD0,
     direction: INPUT, gpio_per_interrupt: kGPIO_InterruptEitherEdge}
   - {pin_num: K17, peripheral: GPIO3, signal: 'GPIO, 19', pin_signal: PIO3_19/FC7_P6/CT2_MAT1/PWM1_X1/FLEXIO0_D27/SMARTDMA_PIO19/SAI1_RX_FS, direction: INPUT}
-  - {pin_num: D7, peripheral: GPIO0, signal: 'GPIO, 31', pin_signal: PIO0_31/CT_INP3/ADC0_B23, direction: INPUT}
+  - {pin_num: D7, peripheral: GPIO0, signal: 'GPIO, 31', pin_signal: PIO0_31/CT_INP3/ADC0_B23, direction: INPUT, gpio_per_interrupt: kGPIO_InterruptFallingEdge}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -563,6 +563,9 @@ void SHIELD_InitRotaryEncoder(void)
     };
     /* Initialize GPIO functionality on pin PIO3_21 (pin L16)  */
     GPIO_PinInit(SHIELD_INITROTARYENCODER_SW6_A_GPIO, SHIELD_INITROTARYENCODER_SW6_A_PIN, &SW6_A_config);
+
+    /* Interrupt configuration on GPIO0_31 (pin D7): Interrupt on falling edge */
+    GPIO_SetPinInterruptConfig(SHIELD_INITROTARYENCODER_SW6_C_GPIO, SHIELD_INITROTARYENCODER_SW6_C_PIN, kGPIO_InterruptFallingEdge);
 
     /* Interrupt configuration on GPIO3_21 (pin L16): Interrupt on either edge */
     GPIO_SetPinInterruptConfig(SHIELD_INITROTARYENCODER_SW6_A_GPIO, SHIELD_INITROTARYENCODER_SW6_A_PIN, kGPIO_InterruptEitherEdge);

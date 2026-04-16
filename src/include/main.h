@@ -5,18 +5,22 @@
 #include "oled.h"
 
 /* Main Menu defines */
-#define APP_1 0x01
-#define APP_2 0x02
-#define APP_ERROR 0x04
+#define APP_1 1
+#define APP_2 2
+#define APP_ERROR 4
 #define STATUS_ON 0x01
-#define STATUS_OFF 0x00
-#define STATUS_ERROR 0x04
+#define STATUS_OFF 0
+#define STATUS_ERROR 4
 
 /* APP 1 defines */
 #define MAX_DELAY 200
 #define MIN_DELAY 10
 #define TIMER_DELAY_DONE (1U << 1)
 #define CHANGED_DIRECTION (1U << 2)
+
+/* APP 2 defines */
+#define ENCODER_BUTTON_PRESSED 0x04
+#define ENCODER_CHANGED_STATE 0x02
 
 /* Structure for different I/O pins on the shield for quick access */
 typedef struct {
