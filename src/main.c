@@ -40,28 +40,28 @@ void main_menu_task(void *parameter)
 	while(1)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-		vTaskDelay(pdMS_TO_TICKS(1)); // Added delay to prevent switch debouncing
+		vTaskDelay(1 / portTICK_PERIOD_MS);
 		uint8_t app = (!(GPIO_PinRead(SWITCH[0].gpio, SWITCH[0].pin))) |
-					   (!(GPIO_PinRead(SWITCH[1].gpio, SWITCH[1].pin)) << 1);
+					   (!(GPIO_PinRead(SWITCH[1].gpio, SWITCH[1].pin)) << 1) |
+					   (!(GPIO_PinRead(SWITCH[2].gpio, SWITCH[2].pin)) << 2);
 		uint8_t nr_apps = bits_counter(app);
 		if(nr_apps == 0)
 		{
-			xTaskNotify(app_handler[active_app], STATUS_OFF, eSetValueWithOverwrite);
+			if(active_app) xTaskNotify(app_handler[active_app], STATUS_OFF, eSetValueWithOverwrite);
 			active_app = 0;
-			xTaskNotify(oled_handler, STATUS_OFF, eSetValueWithOverwrite);
+			xTaskNotify(oled_handler, 0, eSetValueWithOverwrite);
 		}
 		else if(nr_apps == 1) 
 		{
 			active_app = bit_position(app)+1;
 			vTaskResume(app_handler[active_app]);
-			xTaskNotify(app_handler[active_app], STATUS_ON, eSetBits);
-			xTaskNotify(oled_handler, app, eSetValueWithOverwrite);
+			xTaskNotify(app_handler[active_app], STATUS_ON | DISPLAY, eSetBits);
 		}
 		else
 		{
 			xTaskNotify(app_handler[active_app], STATUS_OFF, eSetValueWithOverwrite);
 			active_app = 0;
-			xTaskNotify(oled_handler, STATUS_ERROR, eSetValueWithOverwrite);
+			xTaskNotify(oled_handler, APP_ERROR, eSetValueWithOverwrite);
 		}
 	}
 }
@@ -70,26 +70,48 @@ void oled_task(void *parameter)
 {
 	uint32_t notifBits;
 	initOLED();
+	bool ok = 1;
+	uint8_t current_dir = RIGHT;
 	sendOLED(nxp_logo_frame, 1024, OLED_DATA);
 	while(1)
 	{
 		xTaskNotifyWait(notifBits, ULONG_MAX, &notifBits, portMAX_DELAY);
-		resetOLED();
+		if(!(notifBits & APP_3)) ok=1;
+		if(ok) resetOLED();
 		if(notifBits == APP_ERROR)
 		{
+			ok = 1;
 			printfOLED("Error\nTurn off one switch");
 		}
 		else if(notifBits == 0)
 		{
+			ok = 1;
 			sendOLED(nxp_logo_frame, 1024, OLED_DATA);
 		}
-		else if(notifBits == APP_1)
+		else if(notifBits & APP_1)
 		{
+			ok = 1;
 			printfOLED("Press SW1 to change  LEDs light direction.\nReset all DP switchesto go back to the    main menu.");
 		}
-		else if(notifBits == APP_2)
+		else if(notifBits & APP_2)
 		{
+			ok = 1;
 			printfOLED("Use rotary encoder tochange LED direction.\nReset all DP switchesto go back to the    main menu.");
+		}
+		else if(notifBits & APP_3)
+		{
+			if(ok)
+			{
+				fillOLED(0x00);
+				setPage(0);
+				setSeg(0);
+				ok = 0;
+			}
+			if(notifBits & DIR_LEFT) current_dir = LEFT;
+			else if(notifBits & DIR_RIGHT) current_dir = RIGHT;
+			else if(notifBits & DIR_UP) current_dir = UP;
+			else if(notifBits & DIR_DOWN) current_dir = DOWN;
+			moveSnake(&mySnake, current_dir);
 		}
 	}
 }
@@ -108,11 +130,15 @@ void app_1_task(void *parameter) {
 	bool direction = 0;
 	while(1)
   	{
-		xTaskNotifyWait(0, TIMER_DELAY_DONE | CHANGED_DIRECTION, &notifBits, portMAX_DELAY);
+		xTaskNotifyWait(0, TIMER_DELAY_DONE | CHANGED_DIRECTION | DISPLAY, &notifBits, portMAX_DELAY);
 		if(notifBits & STATUS_ON)
 		{
+			if(notifBits & DISPLAY) {
+				xTaskNotify(oled_handler, APP_1, eSetBits);
+			}
 			if(notifBits & CHANGED_DIRECTION) direction = !direction;
-			uint32_t delay = MAX_DELAY - (uint32_t)((potValue * (MAX_DELAY - MIN_DELAY)) / UINT16_MAX);
+			delay = (potValue >> 7);		
+			if(delay < 10) delay = 10;
 			CTIMER0->MR[CTIMER0_MATCH_0_CHANNEL] = delay;
 			if(CTIMER0->TC > delay) CTIMER_Reset(CTIMER0);
 			GPIO_PinWrite(LEDs[old_led].gpio, LEDs[old_led].pin, 0);
@@ -157,9 +183,12 @@ void app_2_task(void *parameter)
 
     while(1)
     {
-        xTaskNotifyWait(0, ENCODER_CHANGED_STATE | ENCODER_BUTTON_PRESSED, &notifBits, portMAX_DELAY);
+        xTaskNotifyWait(0, ENCODER_CHANGED_STATE | ENCODER_BUTTON_PRESSED | DISPLAY, &notifBits, portMAX_DELAY);
 
         if(notifBits & STATUS_ON) {
+			if(notifBits & DISPLAY) {
+				xTaskNotify(oled_handler, APP_2, eSetBits);
+			}
             if(notifBits & ENCODER_BUTTON_PRESSED)
             {
                 for(int i=0; i<num_leds; ++i)
@@ -249,12 +278,62 @@ void app_2_task(void *parameter)
     }
 }
 
+/* 
+Third App 
+	- Dedicated to SW_DIP_3
+	- Snake Game controlled via NAV Switch
+*/
+void app_3_task(void *parameter)
+{
+	uint32_t notifBits;
+	DIRECTION direction = IDLE;
+	while(1)
+	{
+		xTaskNotifyWait(0, TIMER_CHECK | DISPLAY, &notifBits, portMAX_DELAY);
+		if(notifBits & STATUS_ON) {
+			for(int i=0; i<num_nav; ++i)
+			{
+				if(!GPIO_PinRead(NAV_Switch[i].gpio, NAV_Switch[i].pin))
+				{
+					direction = i;
+				}
+			}
+			switch (direction) {
+				case LEFT:
+					xTaskNotify(oled_handler, APP_3 | DIR_LEFT, eSetBits);
+					direction = IDLE;
+					break;
+				case RIGHT:
+					xTaskNotify(oled_handler, APP_3 | DIR_RIGHT, eSetBits);
+					direction = IDLE;	
+					break;
+				case UP:
+					xTaskNotify(oled_handler, APP_3 | DIR_UP, eSetBits);
+					direction = IDLE;
+					break;
+				case DOWN:
+					xTaskNotify(oled_handler, APP_3 | DIR_DOWN, eSetBits);
+					direction = IDLE;
+					break;
+				case IDLE:	
+					xTaskNotify(oled_handler, APP_3, eSetBits);
+					break;
+			}
+		}
+		else
+		{
+			vTaskSuspend(NULL);
+		}
+	}
+}
+
 int main() {
 
-	xTaskCreate(main_menu_task, "Main Menu", 50, NULL, 3, &app_handler[0]);
+	xTaskCreate(main_menu_task, "Main Menu", 100, NULL, 3, &app_handler[0]);
   	xTaskCreate(app_1_task, "App 1", 50, NULL, 2, &app_handler[1]);
 	xTaskCreate(app_2_task, "App 2", 50, NULL, 2, &app_handler[2]);
-	xTaskCreate(oled_task, "OLED Display", 500, NULL, 1, &oled_handler);
+	xTaskCreate(app_3_task, "App 3", 50, NULL, 2, &app_handler[3]);
+	xTaskCreate(oled_task, "OLED", 1024, NULL, 1, &oled_handler);
 
 	BOARD_InitBootClocks();
   	BOARD_InitBootPins();

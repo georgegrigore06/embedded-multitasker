@@ -39,6 +39,13 @@ pin_labels:
 - {pin_num: L16, pin_signal: PIO3_21/TRIG_OUT1/FC8_P5/FC6_P1/CT2_MAT3/PWM1_B3/FLEXIO0_D29/SMARTDMA_PIO21/SIM0_RST/SAI1_RXD0, label: SW6_A, identifier: SW6_A}
 - {pin_num: K17, pin_signal: PIO3_19/FC7_P6/CT2_MAT1/PWM1_X1/FLEXIO0_D27/SMARTDMA_PIO19/SAI1_RX_FS, label: SW6_B, identifier: SW6_B}
 - {pin_num: D7, pin_signal: PIO0_31/CT_INP3/ADC0_B23, label: SW6_C, identifier: SW6_C}
+- {pin_num: K16, pin_signal: PIO3_18/FC6_P6/CT2_MAT0/PWM1_X0/FLEXIO0_D26/SMARTDMA_PIO18/SAI1_RX_BCLK, label: NAV_SW1, identifier: NAV_SW1}
+- {pin_num: K2, pin_signal: PIO2_6/TRIG_IN4/FC9_P4/SDHC0_D3/SCT0_OUT4/PWM1_A0/FLEXIO0_D14/SMARTDMA_PIO26/FLEXSPI0_B_DATA2/SINC0_MCLK2/SAI0_TX_BCLK, label: NAV_SW2,
+  identifier: NAV_SW2}
+- {pin_num: E7, pin_signal: PIO0_30/FC1_P6/FC0_P6/CT_INP2/ADC0_B22, label: NAV_SW3, identifier: NAV_SW3}
+- {pin_num: M4, pin_signal: PIO1_23/FC4_P3/CT_INP15/SCT0_OUT5/FLEXIO0_D31/SMARTDMA_PIO19/ADC1_A23, label: NAV_SW4, identifier: NAV_SW4}
+- {pin_num: K15, pin_signal: PIO3_17/WUU0_IN26/FC8_P3/CT_INP9/PWM1_B2/FLEXIO0_D25/SMARTDMA_PIO17/SIM0_IO/SAI1_TX_FS, label: NAV_SW6, identifier: NAV_SW6}
+- {pin_num: J3, pin_signal: PIO2_3/FC9_P1/SDHC0_D0/SCT0_OUT1/PWM1_B2/FLEXIO0_D11/SMARTDMA_PIO23/FLEXSPI0_B_SCLK/SINC0_MBIT0/SAI0_RXD0, label: SW_DIP_3, identifier: SW_DIP_3}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -64,6 +71,7 @@ void BOARD_InitBootPins(void)
     SHIELD_InitDIPSwitch();
     BOARD_InitI2C();
     SHIELD_InitRotaryEncoder();
+    SHIELD_InitJoystick();
 }
 
 /* clang-format off */
@@ -390,6 +398,8 @@ SHIELD_InitDIPSwitch:
     direction: INPUT, gpio_per_interrupt_sel: output0, gpio_per_interrupt: kGPIO_InterruptEitherEdge, eft_interrupt: disable, slew_rate: fast, invert_input: normal}
   - {pin_num: L4, peripheral: GPIO1, signal: 'GPIO, 22', pin_signal: PIO1_22/TRIG_IN3/FC5_P6/FC4_P2/CT_INP14/SCT0_OUT4/FLEXIO0_D30/SMARTDMA_PIO18/ADC1_A22, direction: INPUT,
     gpio_per_interrupt: kGPIO_InterruptEitherEdge}
+  - {pin_num: J3, peripheral: GPIO2, signal: 'GPIO, 3', pin_signal: PIO2_3/FC9_P1/SDHC0_D0/SCT0_OUT1/PWM1_B2/FLEXIO0_D11/SMARTDMA_PIO23/FLEXSPI0_B_SCLK/SINC0_MBIT0/SAI0_RXD0,
+    direction: INPUT, gpio_per_interrupt: kGPIO_InterruptEitherEdge}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -425,6 +435,13 @@ void SHIELD_InitDIPSwitch(void)
     /* Initialize GPIO functionality on pin PIO2_0 (pin H2)  */
     GPIO_PinInit(SHIELD_INITDIPSWITCH_SW_DIP_1_GPIO, SHIELD_INITDIPSWITCH_SW_DIP_1_PIN, &SW_DIP_1_config);
 
+    gpio_pin_config_t SW_DIP_3_config = {
+        .pinDirection = kGPIO_DigitalInput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PIO2_3 (pin J3)  */
+    GPIO_PinInit(SHIELD_INITDIPSWITCH_SW_DIP_3_GPIO, SHIELD_INITDIPSWITCH_SW_DIP_3_PIN, &SW_DIP_3_config);
+
     /* Interrupt configuration on GPIO1_22 (pin L4): Interrupt on either edge */
     GPIO_SetPinInterruptConfig(SHIELD_INITDIPSWITCH_SW_DIP_2_GPIO, SHIELD_INITDIPSWITCH_SW_DIP_2_PIN, kGPIO_InterruptEitherEdge);
 
@@ -437,6 +454,9 @@ void SHIELD_InitDIPSwitch(void)
 
     /* Interrupt configuration on GPIO2_0 (pin H2): Interrupt on either edge */
     GPIO_SetPinInterruptConfig(SHIELD_INITDIPSWITCH_SW_DIP_1_GPIO, SHIELD_INITDIPSWITCH_SW_DIP_1_PIN, kGPIO_InterruptEitherEdge);
+
+    /* Interrupt configuration on GPIO2_3 (pin J3): Interrupt on either edge */
+    GPIO_SetPinInterruptConfig(SHIELD_INITDIPSWITCH_SW_DIP_3_GPIO, SHIELD_INITDIPSWITCH_SW_DIP_3_PIN, kGPIO_InterruptEitherEdge);
 
     /* PORT1_22 (pin L4) is configured as PIO1_22 */
     PORT_SetPinMux(SHIELD_INITDIPSWITCH_SW_DIP_2_PORT, SHIELD_INITDIPSWITCH_SW_DIP_2_PIN, kPORT_MuxAlt0);
@@ -466,6 +486,16 @@ void SHIELD_InitDIPSwitch(void)
 
                      /* Invert Input: Does not invert. */
                      | PORT_PCR_INV(PCR_INV_inv0));
+
+    /* PORT2_3 (pin J3) is configured as PIO2_3 */
+    PORT_SetPinMux(SHIELD_INITDIPSWITCH_SW_DIP_3_PORT, SHIELD_INITDIPSWITCH_SW_DIP_3_PIN, kPORT_MuxAlt0);
+
+    PORT2->PCR[3] = ((PORT2->PCR[3] &
+                      /* Mask bits to zero which are setting */
+                      (~(PORT_PCR_IBE_MASK)))
+
+                     /* Input Buffer Enable: Enables. */
+                     | PORT_PCR_IBE(PCR_IBE_ibe1));
 }
 
 /* clang-format off */
@@ -594,6 +624,146 @@ void SHIELD_InitRotaryEncoder(void)
     PORT_SetPinMux(SHIELD_INITROTARYENCODER_SW6_A_PORT, SHIELD_INITROTARYENCODER_SW6_A_PIN, kPORT_MuxAlt0);
 
     PORT3->PCR[21] = ((PORT3->PCR[21] &
+                       /* Mask bits to zero which are setting */
+                       (~(PORT_PCR_IBE_MASK)))
+
+                      /* Input Buffer Enable: Enables. */
+                      | PORT_PCR_IBE(PCR_IBE_ibe1));
+}
+
+/* clang-format off */
+/*
+ * TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+SHIELD_InitJoystick:
+- options: {callFromInitBoot: 'true', coreID: cm33_core0, enableClock: 'true'}
+- pin_list:
+  - {pin_num: K16, peripheral: GPIO3, signal: 'GPIO, 18', pin_signal: PIO3_18/FC6_P6/CT2_MAT0/PWM1_X0/FLEXIO0_D26/SMARTDMA_PIO18/SAI1_RX_BCLK, direction: INPUT, gpio_per_interrupt: kGPIO_InterruptFallingEdge}
+  - {pin_num: K2, peripheral: GPIO2, signal: 'GPIO, 6', pin_signal: PIO2_6/TRIG_IN4/FC9_P4/SDHC0_D3/SCT0_OUT4/PWM1_A0/FLEXIO0_D14/SMARTDMA_PIO26/FLEXSPI0_B_DATA2/SINC0_MCLK2/SAI0_TX_BCLK,
+    direction: INPUT}
+  - {pin_num: E7, peripheral: GPIO0, signal: 'GPIO, 30', pin_signal: PIO0_30/FC1_P6/FC0_P6/CT_INP2/ADC0_B22, direction: INPUT, gpio_per_interrupt: kGPIO_InterruptFallingEdge}
+  - {pin_num: M4, peripheral: GPIO1, signal: 'GPIO, 23', pin_signal: PIO1_23/FC4_P3/CT_INP15/SCT0_OUT5/FLEXIO0_D31/SMARTDMA_PIO19/ADC1_A23, direction: INPUT, gpio_per_interrupt: kGPIO_InterruptFallingEdge}
+  - {pin_num: K15, peripheral: GPIO3, signal: 'GPIO, 17', pin_signal: PIO3_17/WUU0_IN26/FC8_P3/CT_INP9/PWM1_B2/FLEXIO0_D25/SMARTDMA_PIO17/SIM0_IO/SAI1_TX_FS, direction: INPUT,
+    gpio_per_interrupt: kGPIO_InterruptFallingEdge}
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
+ */
+/* clang-format on */
+
+/* FUNCTION ************************************************************************************************************
+ *
+ * Function Name : SHIELD_InitJoystick
+ * Description   : Configures pin routing and optionally pin electrical features.
+ *
+ * END ****************************************************************************************************************/
+void SHIELD_InitJoystick(void)
+{
+    /* Enables the clock for GPIO0: Enables clock */
+    CLOCK_EnableClock(kCLOCK_Gpio0);
+    /* Enables the clock for GPIO1: Enables clock */
+    CLOCK_EnableClock(kCLOCK_Gpio1);
+    /* Enables the clock for GPIO2: Enables clock */
+    CLOCK_EnableClock(kCLOCK_Gpio2);
+    /* Enables the clock for GPIO3: Enables clock */
+    CLOCK_EnableClock(kCLOCK_Gpio3);
+    /* Enables the clock for PORT0 controller: Enables clock */
+    CLOCK_EnableClock(kCLOCK_Port0);
+    /* Enables the clock for PORT1: Enables clock */
+    CLOCK_EnableClock(kCLOCK_Port1);
+    /* Enables the clock for PORT2: Enables clock */
+    CLOCK_EnableClock(kCLOCK_Port2);
+    /* Enables the clock for PORT3: Enables clock */
+    CLOCK_EnableClock(kCLOCK_Port3);
+
+    gpio_pin_config_t NAV_SW3_config = {
+        .pinDirection = kGPIO_DigitalInput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PIO0_30 (pin E7)  */
+    GPIO_PinInit(SHIELD_INITJOYSTICK_NAV_SW3_GPIO, SHIELD_INITJOYSTICK_NAV_SW3_PIN, &NAV_SW3_config);
+
+    gpio_pin_config_t NAV_SW4_config = {
+        .pinDirection = kGPIO_DigitalInput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PIO1_23 (pin M4)  */
+    GPIO_PinInit(SHIELD_INITJOYSTICK_NAV_SW4_GPIO, SHIELD_INITJOYSTICK_NAV_SW4_PIN, &NAV_SW4_config);
+
+    gpio_pin_config_t NAV_SW2_config = {
+        .pinDirection = kGPIO_DigitalInput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PIO2_6 (pin K2)  */
+    GPIO_PinInit(SHIELD_INITJOYSTICK_NAV_SW2_GPIO, SHIELD_INITJOYSTICK_NAV_SW2_PIN, &NAV_SW2_config);
+
+    gpio_pin_config_t NAV_SW6_config = {
+        .pinDirection = kGPIO_DigitalInput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PIO3_17 (pin K15)  */
+    GPIO_PinInit(SHIELD_INITJOYSTICK_NAV_SW6_GPIO, SHIELD_INITJOYSTICK_NAV_SW6_PIN, &NAV_SW6_config);
+
+    gpio_pin_config_t NAV_SW1_config = {
+        .pinDirection = kGPIO_DigitalInput,
+        .outputLogic = 0U
+    };
+    /* Initialize GPIO functionality on pin PIO3_18 (pin K16)  */
+    GPIO_PinInit(SHIELD_INITJOYSTICK_NAV_SW1_GPIO, SHIELD_INITJOYSTICK_NAV_SW1_PIN, &NAV_SW1_config);
+
+    /* Interrupt configuration on GPIO0_30 (pin E7): Interrupt on falling edge */
+    GPIO_SetPinInterruptConfig(SHIELD_INITJOYSTICK_NAV_SW3_GPIO, SHIELD_INITJOYSTICK_NAV_SW3_PIN, kGPIO_InterruptFallingEdge);
+
+    /* Interrupt configuration on GPIO1_23 (pin M4): Interrupt on falling edge */
+    GPIO_SetPinInterruptConfig(SHIELD_INITJOYSTICK_NAV_SW4_GPIO, SHIELD_INITJOYSTICK_NAV_SW4_PIN, kGPIO_InterruptFallingEdge);
+
+    /* Interrupt configuration on GPIO3_17 (pin K15): Interrupt on falling edge */
+    GPIO_SetPinInterruptConfig(SHIELD_INITJOYSTICK_NAV_SW6_GPIO, SHIELD_INITJOYSTICK_NAV_SW6_PIN, kGPIO_InterruptFallingEdge);
+
+    /* Interrupt configuration on GPIO3_18 (pin K16): Interrupt on falling edge */
+    GPIO_SetPinInterruptConfig(SHIELD_INITJOYSTICK_NAV_SW1_GPIO, SHIELD_INITJOYSTICK_NAV_SW1_PIN, kGPIO_InterruptFallingEdge);
+
+    /* PORT0_30 (pin E7) is configured as PIO0_30 */
+    PORT_SetPinMux(SHIELD_INITJOYSTICK_NAV_SW3_PORT, SHIELD_INITJOYSTICK_NAV_SW3_PIN, kPORT_MuxAlt0);
+
+    PORT0->PCR[30] = ((PORT0->PCR[30] &
+                       /* Mask bits to zero which are setting */
+                       (~(PORT_PCR_IBE_MASK)))
+
+                      /* Input Buffer Enable: Enables. */
+                      | PORT_PCR_IBE(PCR_IBE_ibe1));
+
+    /* PORT1_23 (pin M4) is configured as PIO1_23 */
+    PORT_SetPinMux(SHIELD_INITJOYSTICK_NAV_SW4_PORT, SHIELD_INITJOYSTICK_NAV_SW4_PIN, kPORT_MuxAlt0);
+
+    PORT1->PCR[23] = ((PORT1->PCR[23] &
+                       /* Mask bits to zero which are setting */
+                       (~(PORT_PCR_IBE_MASK)))
+
+                      /* Input Buffer Enable: Enables. */
+                      | PORT_PCR_IBE(PCR_IBE_ibe1));
+
+    /* PORT2_6 (pin K2) is configured as PIO2_6 */
+    PORT_SetPinMux(SHIELD_INITJOYSTICK_NAV_SW2_PORT, SHIELD_INITJOYSTICK_NAV_SW2_PIN, kPORT_MuxAlt0);
+
+    PORT2->PCR[6] = ((PORT2->PCR[6] &
+                      /* Mask bits to zero which are setting */
+                      (~(PORT_PCR_IBE_MASK)))
+
+                     /* Input Buffer Enable: Enables. */
+                     | PORT_PCR_IBE(PCR_IBE_ibe1));
+
+    /* PORT3_17 (pin K15) is configured as PIO3_17 */
+    PORT_SetPinMux(SHIELD_INITJOYSTICK_NAV_SW6_PORT, SHIELD_INITJOYSTICK_NAV_SW6_PIN, kPORT_MuxAlt0);
+
+    PORT3->PCR[17] = ((PORT3->PCR[17] &
+                       /* Mask bits to zero which are setting */
+                       (~(PORT_PCR_IBE_MASK)))
+
+                      /* Input Buffer Enable: Enables. */
+                      | PORT_PCR_IBE(PCR_IBE_ibe1));
+
+    /* PORT3_18 (pin K16) is configured as PIO3_18 */
+    PORT_SetPinMux(SHIELD_INITJOYSTICK_NAV_SW1_PORT, SHIELD_INITJOYSTICK_NAV_SW1_PIN, kPORT_MuxAlt0);
+
+    PORT3->PCR[18] = ((PORT3->PCR[18] &
                        /* Mask bits to zero which are setting */
                        (~(PORT_PCR_IBE_MASK)))
 

@@ -335,7 +335,7 @@ instance:
         - hardwareCompareMode: 'kLPADC_HardwareCompareDisabled'
         - hardwareCompareValueHigh: '0'
         - hardwareCompareValueLow: '0'
-        - conversionResoultuionMode: 'kLPADC_ConversionResolutionHigh'
+        - conversionResoultuionMode: 'kLPADC_ConversionResolutionStandard'
         - enableWaitTrigger: 'false'
       - 1:
         - user_commandId: 'LIGHT'
@@ -402,7 +402,7 @@ lpadc_conv_command_config_t ADC0_commandsConfig[2] = {
     .hardwareCompareMode = kLPADC_HardwareCompareDisabled,
     .hardwareCompareValueHigh = 0UL,
     .hardwareCompareValueLow = 0UL,
-    .conversionResolutionMode = kLPADC_ConversionResolutionHigh,
+    .conversionResolutionMode = kLPADC_ConversionResolutionStandard,
     .enableWaitTrigger = false
   },
   {
@@ -559,6 +559,7 @@ instance:
       - 4: []
       - 5: []
       - 6: []
+      - 7: []
     - interrupts:
       - 0:
         - channelId: 'int_0'
@@ -929,6 +930,75 @@ static void GPIO0_init(void) {
 }
 
 /***********************************************************************************************************************
+ * CTIMER1 initialization code
+ **********************************************************************************************************************/
+/* clang-format off */
+/* TEXT BELOW IS USED AS SETTING FOR TOOLS *************************************
+instance:
+- name: 'CTIMER1'
+- type: 'ctimer'
+- mode: 'Capture_Match'
+- custom_name_enabled: 'false'
+- type_id: 'ctimer_2.2.2'
+- functional_group: 'BOARD_InitPeripherals'
+- peripheral: 'CTIMER1'
+- config_sets:
+  - fsl_ctimer:
+    - ctimerConfig:
+      - mode: 'kCTIMER_TimerMode'
+      - clockSource: 'FunctionClock'
+      - clockSourceFreq: 'ClocksTool_DefaultInit'
+      - timerPrescaler: '1 ms'
+    - EnableTimerInInit: 'true'
+    - matchChannels:
+      - 0:
+        - matchChannelPrefixId: 'Match_0'
+        - matchChannel: 'kCTIMER_Match_0'
+        - matchValueStr: '150 ms'
+        - enableCounterReset: 'true'
+        - enableCounterStop: 'false'
+        - outControl: 'kCTIMER_Output_NoAction'
+        - outPinInitValue: 'low'
+        - enableInterrupt: 'true'
+    - captureChannels: []
+    - interruptCallbackConfig:
+      - interrupt:
+        - IRQn: 'CTIMER1_IRQn'
+        - enable_priority: 'true'
+        - priority: '2'
+      - callback: 'kCTIMER_SingleCallback'
+      - singleCallback: 'ctimer1_callback'
+ * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS **********/
+/* clang-format on */
+const ctimer_config_t CTIMER1_config = {
+  .mode = kCTIMER_TimerMode,
+  .input = kCTIMER_Capture_0,
+  .prescale = 47999
+};
+const ctimer_match_config_t CTIMER1_Match_0_config = {
+  .matchValue = 149,
+  .enableCounterReset = true,
+  .enableCounterStop = false,
+  .outControl = kCTIMER_Output_NoAction,
+  .outPinInitState = false,
+  .enableInterrupt = true
+};
+/* Single callback functions definition */
+ctimer_callback_t CTIMER1_callback[] = {ctimer1_callback};
+
+static void CTIMER1_init(void) {
+  /* CTIMER1 peripheral initialization */
+  CTIMER_Init(CTIMER1_PERIPHERAL, &CTIMER1_config);
+  /* Interrupt vector CTIMER1_IRQn priority settings in the NVIC. */
+  NVIC_SetPriority(CTIMER1_TIMER_IRQN, CTIMER1_TIMER_IRQ_PRIORITY);
+  /* Match channel 0 of CTIMER1 peripheral initialization */
+  CTIMER_SetupMatch(CTIMER1_PERIPHERAL, CTIMER1_MATCH_0_CHANNEL, &CTIMER1_Match_0_config);
+  CTIMER_RegisterCallBack(CTIMER1_PERIPHERAL, CTIMER1_callback, kCTIMER_SingleCallback);
+  /* Start the timer */
+  CTIMER_StartTimer(CTIMER1_PERIPHERAL);
+}
+
+/***********************************************************************************************************************
  * Initialization functions
  **********************************************************************************************************************/
 static void BOARD_InitPeripherals_CommonPostInit(void)
@@ -956,6 +1026,7 @@ void BOARD_InitPeripherals(void)
   LP_FLEXCOMM2_init();
   GPIO3_init();
   GPIO0_init();
+  CTIMER1_init();
   /* Common post-initialization */
   BOARD_InitPeripherals_CommonPostInit();
 }

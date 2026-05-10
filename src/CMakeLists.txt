@@ -1,4 +1,6 @@
-add_library(my_lib STATIC my_interrupts.c oled.c)
+add_library(my_lib STATIC my_interrupts.c oled.c
+    snake_logic.c
+    include/snake_logic.h)
 
 target_link_libraries(my_lib
     PRIVATE

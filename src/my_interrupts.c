@@ -1,6 +1,6 @@
 #include "my_interrupts.h"
 
-TaskHandle_t app_handler[3], oled_handler;
+TaskHandle_t app_handler[4], oled_handler;
 
 void EDMA_0_CH1_IRQHandler(void)
 {
@@ -20,14 +20,13 @@ void EDMA_0_CH1_IRQHandler(void)
  * @param userData Arbitrary pointer-sized value passed from the application.
  */
 void lpi2c_master_callback(LPI2C_Type *base, lpi2c_master_edma_handle_t *handle, status_t completionStatus, void *userData) {
-  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
   
   if (completionStatus == kStatus_Success) {
       handle->isBusy = false;
+      BaseType_t xHigherPriorityTaskWoken = pdFALSE;
       vTaskNotifyGiveFromISR(oled_handler, &xHigherPriorityTaskWoken);
-  }
-  portYIELD_FROM_ISR( xHigherPriorityTaskWoken ); 
-  
+      portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+    }   
 }
 
 /* GPIO00_IRQn interrupt handler */
@@ -36,7 +35,16 @@ void GPIO0_INT_0_IRQHANDLER(void) {
   uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO0, 0U);
 
   /* Place your interrupt code here */
-  xTaskNotifyFromISR(app_handler[2], 0x04, eSetBits, NULL);
+  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+  if(pin_flags0 & SHIELD_INITJOYSTICK_NAV_SW3_GPIO_PIN_MASK)
+  {
+    xTaskNotifyFromISR(app_handler[3], (1U << 1), eSetBits, &xHigherPriorityTaskWoken);
+  }
+  else 
+  {
+    xTaskNotifyFromISR(app_handler[2], 0x04, eSetBits, &xHigherPriorityTaskWoken);
+  }
+  portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
   /* Clear pin flags 0 */
   GPIO_GpioClearInterruptChannelFlags(GPIO0, pin_flags0, 0U); 
 
@@ -56,8 +64,15 @@ void GPIO1_INT_0_IRQHANDLER(void) {
 
   /* Place your interrupt code here */
   BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-  vTaskNotifyGiveFromISR(app_handler[0], &xHigherPriorityTaskWoken);
-  portYIELD_FROM_ISR( xHigherPriorityTaskWoken ); 
+  if(pin_flags0 & SHIELD_INITJOYSTICK_NAV_SW4_GPIO_PIN_MASK)
+  {
+    xTaskNotifyFromISR(app_handler[3], (1U << 1), eSetBits, &xHigherPriorityTaskWoken);
+  }
+  else 
+  {
+    vTaskNotifyGiveFromISR(app_handler[0], &xHigherPriorityTaskWoken); 
+  }
+  portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 
   /* Clear pin flags 0 */
   GPIO_GpioClearInterruptChannelFlags(GPIO1, pin_flags0, 0U); 
@@ -89,7 +104,9 @@ void GPIO4_INT_0_IRQHANDLER(void) {
   uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO4, 0U);
 
   /* Place your interrupt code here */
-  xTaskNotifyFromISR(app_handler[1], (1 << 2), eSetBits, NULL);
+  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+  xTaskNotifyFromISR(app_handler[1], (1 << 2), eSetBits, &xHigherPriorityTaskWoken);
+  portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
   
   /* Clear pin flags 0 */
   GPIO_GpioClearInterruptChannelFlags(GPIO4, pin_flags0, 0U); 
@@ -107,7 +124,16 @@ void GPIO3_INT_0_IRQHANDLER(void) {
   uint32_t pin_flags0 = GPIO_GpioGetInterruptChannelFlags(GPIO3, 0U);
 
   /* Place your interrupt code here */
-  xTaskNotifyFromISR(app_handler[2], 0x02, eSetBits, NULL);
+  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+  if(pin_flags0 & (SHIELD_INITJOYSTICK_NAV_SW1_GPIO_PIN_MASK | SHIELD_INITJOYSTICK_NAV_SW6_GPIO_PIN_MASK))
+  {
+    xTaskNotifyFromISR(app_handler[3], (1U << 1), eSetBits, &xHigherPriorityTaskWoken);
+  }
+  else 
+  {
+    xTaskNotifyFromISR(app_handler[2], 0x02, eSetBits, &xHigherPriorityTaskWoken);
+  }
+  portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
   /* Clear pin flags 0 */
   GPIO_GpioClearInterruptChannelFlags(GPIO3, pin_flags0, 0U); 
 
@@ -118,18 +144,27 @@ void GPIO3_INT_0_IRQHANDLER(void) {
   #endif
 }
 
+extern void CTIMER0_DriverIRQHandler(void);
+extern void CTIMER1_DriverIRQHandler(void);
 
-void CTIMER0_IRQHandler(void)
+void CTIMER0_IRQHandler()
 {
-	uint32_t flags = CTIMER_GetStatusFlags(CTIMER0);
+  CTIMER0_DriverIRQHandler();
+}
 
-    CTIMER_ClearStatusFlags(CTIMER0, flags);
-
-	if(flags & kCTIMER_Match0Flag) ctimer0_callback(flags);
+void CTIMER1_IRQHandler()
+{
+  CTIMER1_DriverIRQHandler();
 }
 
 void ctimer0_callback(uint32_t flags) {
   BaseType_t xHigherPriorityWasWoken = pdFALSE;
 	xTaskNotifyFromISR(app_handler[1], (1 << 1), eSetBits, &xHigherPriorityWasWoken);
+  portYIELD_FROM_ISR(xHigherPriorityWasWoken);
+}
+
+void ctimer1_callback(uint32_t flags) {
+  BaseType_t xHigherPriorityWasWoken = pdFALSE;
+	xTaskNotifyFromISR(app_handler[3], (1 << 1), eSetBits, &xHigherPriorityWasWoken);
   portYIELD_FROM_ISR(xHigherPriorityWasWoken);
 }

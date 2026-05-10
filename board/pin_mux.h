@@ -259,6 +259,20 @@ void SHIELD_InitADC(void);
 #define SHIELD_INITDIPSWITCH_SW_DIP_2_PIN_MASK (1U << 22U)      /*!<@brief PORT pin mask */
                                                                 /* @} */
 
+/*! @name PORT2_3 (coord J3), SW_DIP_3
+  @{ */
+
+/* Symbols to be used with GPIO driver */
+#define SHIELD_INITDIPSWITCH_SW_DIP_3_GPIO GPIO2               /*!<@brief GPIO peripheral base pointer */
+#define SHIELD_INITDIPSWITCH_SW_DIP_3_GPIO_PIN 3U              /*!<@brief GPIO pin number */
+#define SHIELD_INITDIPSWITCH_SW_DIP_3_GPIO_PIN_MASK (1U << 3U) /*!<@brief GPIO pin mask */
+
+/* Symbols to be used with PORT driver */
+#define SHIELD_INITDIPSWITCH_SW_DIP_3_PORT PORT2               /*!<@brief PORT peripheral base pointer */
+#define SHIELD_INITDIPSWITCH_SW_DIP_3_PIN 3U                   /*!<@brief PORT pin number */
+#define SHIELD_INITDIPSWITCH_SW_DIP_3_PIN_MASK (1U << 3U)      /*!<@brief PORT pin mask */
+                                                               /* @} */
+
 /*!
  * @brief Configures pin routing and optionally pin electrical features.
  *
@@ -322,6 +336,84 @@ void BOARD_InitI2C(void);
  *
  */
 void SHIELD_InitRotaryEncoder(void);
+
+#define PCR_IBE_ibe1 0x01u /*!<@brief Input Buffer Enable: Enables */
+
+/*! @name PORT3_18 (coord K16), NAV_SW1
+  @{ */
+
+/* Symbols to be used with GPIO driver */
+#define SHIELD_INITJOYSTICK_NAV_SW1_GPIO GPIO3                /*!<@brief GPIO peripheral base pointer */
+#define SHIELD_INITJOYSTICK_NAV_SW1_GPIO_PIN 18U              /*!<@brief GPIO pin number */
+#define SHIELD_INITJOYSTICK_NAV_SW1_GPIO_PIN_MASK (1U << 18U) /*!<@brief GPIO pin mask */
+
+/* Symbols to be used with PORT driver */
+#define SHIELD_INITJOYSTICK_NAV_SW1_PORT PORT3                /*!<@brief PORT peripheral base pointer */
+#define SHIELD_INITJOYSTICK_NAV_SW1_PIN 18U                   /*!<@brief PORT pin number */
+#define SHIELD_INITJOYSTICK_NAV_SW1_PIN_MASK (1U << 18U)      /*!<@brief PORT pin mask */
+                                                              /* @} */
+
+/*! @name PORT2_6 (coord K2), NAV_SW2
+  @{ */
+
+/* Symbols to be used with GPIO driver */
+#define SHIELD_INITJOYSTICK_NAV_SW2_GPIO GPIO2               /*!<@brief GPIO peripheral base pointer */
+#define SHIELD_INITJOYSTICK_NAV_SW2_GPIO_PIN 6U              /*!<@brief GPIO pin number */
+#define SHIELD_INITJOYSTICK_NAV_SW2_GPIO_PIN_MASK (1U << 6U) /*!<@brief GPIO pin mask */
+
+/* Symbols to be used with PORT driver */
+#define SHIELD_INITJOYSTICK_NAV_SW2_PORT PORT2               /*!<@brief PORT peripheral base pointer */
+#define SHIELD_INITJOYSTICK_NAV_SW2_PIN 6U                   /*!<@brief PORT pin number */
+#define SHIELD_INITJOYSTICK_NAV_SW2_PIN_MASK (1U << 6U)      /*!<@brief PORT pin mask */
+                                                             /* @} */
+
+/*! @name PORT0_30 (coord E7), NAV_SW3
+  @{ */
+
+/* Symbols to be used with GPIO driver */
+#define SHIELD_INITJOYSTICK_NAV_SW3_GPIO GPIO0                /*!<@brief GPIO peripheral base pointer */
+#define SHIELD_INITJOYSTICK_NAV_SW3_GPIO_PIN 30U              /*!<@brief GPIO pin number */
+#define SHIELD_INITJOYSTICK_NAV_SW3_GPIO_PIN_MASK (1U << 30U) /*!<@brief GPIO pin mask */
+
+/* Symbols to be used with PORT driver */
+#define SHIELD_INITJOYSTICK_NAV_SW3_PORT PORT0                /*!<@brief PORT peripheral base pointer */
+#define SHIELD_INITJOYSTICK_NAV_SW3_PIN 30U                   /*!<@brief PORT pin number */
+#define SHIELD_INITJOYSTICK_NAV_SW3_PIN_MASK (1U << 30U)      /*!<@brief PORT pin mask */
+                                                              /* @} */
+
+/*! @name PORT1_23 (coord M4), NAV_SW4
+  @{ */
+
+/* Symbols to be used with GPIO driver */
+#define SHIELD_INITJOYSTICK_NAV_SW4_GPIO GPIO1                /*!<@brief GPIO peripheral base pointer */
+#define SHIELD_INITJOYSTICK_NAV_SW4_GPIO_PIN 23U              /*!<@brief GPIO pin number */
+#define SHIELD_INITJOYSTICK_NAV_SW4_GPIO_PIN_MASK (1U << 23U) /*!<@brief GPIO pin mask */
+
+/* Symbols to be used with PORT driver */
+#define SHIELD_INITJOYSTICK_NAV_SW4_PORT PORT1                /*!<@brief PORT peripheral base pointer */
+#define SHIELD_INITJOYSTICK_NAV_SW4_PIN 23U                   /*!<@brief PORT pin number */
+#define SHIELD_INITJOYSTICK_NAV_SW4_PIN_MASK (1U << 23U)      /*!<@brief PORT pin mask */
+                                                              /* @} */
+
+/*! @name PORT3_17 (coord K15), NAV_SW6
+  @{ */
+
+/* Symbols to be used with GPIO driver */
+#define SHIELD_INITJOYSTICK_NAV_SW6_GPIO GPIO3                /*!<@brief GPIO peripheral base pointer */
+#define SHIELD_INITJOYSTICK_NAV_SW6_GPIO_PIN 17U              /*!<@brief GPIO pin number */
+#define SHIELD_INITJOYSTICK_NAV_SW6_GPIO_PIN_MASK (1U << 17U) /*!<@brief GPIO pin mask */
+
+/* Symbols to be used with PORT driver */
+#define SHIELD_INITJOYSTICK_NAV_SW6_PORT PORT3                /*!<@brief PORT peripheral base pointer */
+#define SHIELD_INITJOYSTICK_NAV_SW6_PIN 17U                   /*!<@brief PORT pin number */
+#define SHIELD_INITJOYSTICK_NAV_SW6_PIN_MASK (1U << 17U)      /*!<@brief PORT pin mask */
+                                                              /* @} */
+
+/*!
+ * @brief Configures pin routing and optionally pin electrical features.
+ *
+ */
+void SHIELD_InitJoystick(void);
 
 #if defined(__cplusplus)
 }

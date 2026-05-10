@@ -52,6 +52,7 @@ extern void resetOLED(void);
 extern void fillPage(uint8_t data);
 extern void scrollOLED(uint8_t rows);
 extern void testFont(uint8_t startChar, uint8_t endChar);
+extern void writeString(char *string, uint8_t seg, uint8_t page);
 
 uint8_t min(uint8_t num1, uint8_t num2);
 uint8_t max(uint8_t num1, uint8_t num2);

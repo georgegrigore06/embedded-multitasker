@@ -147,6 +147,20 @@ extern "C" {
 #define GPIO0_INT_0_IRQ_PRIORITY 2
 /* GPIO0 interrupt handler identifier. */
 #define GPIO0_INT_0_IRQHANDLER GPIO00_IRQHandler
+/* Definition of peripheral ID */
+#define CTIMER1_PERIPHERAL CTIMER1
+/* Timer tick frequency in Hz (input frequency of the timer) */
+#define CTIMER1_TICK_FREQ 1000UL
+/* Timer tick period in ns (input period of the timer) */
+#define CTIMER1_TICK_PERIOD 1000000UL
+/* Definition of PWM period channel. */
+#define CTIMER1_PWM_PERIOD_CH kCTIMER_Match_0
+/* Definition of channel 0 ID */
+#define CTIMER1_MATCH_0_CHANNEL kCTIMER_Match_0
+/* CTIMER1 interrupt vector ID (number). */
+#define CTIMER1_TIMER_IRQN CTIMER1_IRQn
+/* CTIMER1 interrupt vector priority. */
+#define CTIMER1_TIMER_IRQ_PRIORITY 2
 
 /***********************************************************************************************************************
  * Global variables
@@ -168,6 +182,8 @@ extern const lpi2c_master_config_t LP_FLEXCOMM2_masterConfig;
 extern edma_handle_t LP_FLEXCOMM2_RX_Handle;
 extern edma_handle_t LP_FLEXCOMM2_TX_Handle;
 extern lpi2c_master_edma_handle_t LP_FLEXCOMM2_master_handle;
+extern const ctimer_config_t CTIMER1_config;
+extern const ctimer_match_config_t CTIMER1_Match_0_config;
 
 /***********************************************************************************************************************
  * Callback functions
@@ -177,6 +193,9 @@ extern void ctimer0_callback(uint32_t flags);
 extern ctimer_callback_t CTIMER0_callback[];
 /* eDMA LPI2C leader callback function for the LP_FLEXCOMM2 component (init. function BOARD_InitPeripherals)*/
 extern void lpi2c_master_callback(LPI2C_Type *, lpi2c_master_edma_handle_t *, status_t, void *);
+  /* Single callback function declaration */
+extern void ctimer1_callback(uint32_t flags);
+extern ctimer_callback_t CTIMER1_callback[];
 
 /***********************************************************************************************************************
  * Initialization functions
