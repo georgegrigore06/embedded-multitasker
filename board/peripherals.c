@@ -139,40 +139,6 @@ instance:
             - linkedChannelMajor: '1775637469087'
             - disableERQ: 'false'
             - enableScatterGather: 'true'
-            - sga: '1775637469092'
-            - interruptSources: ''
-          - 1:
-            - TCD_REGS:
-              - edma4_tcd: []
-            - uid: '1775637469092'
-            - tcdID: 'CH0_TCD1'
-            - ssize: 'kEDMA_TransferSize2Bytes'
-            - saddr_expr: '&(ADC0->RESFIFO[0])'
-            - saddr_def: ''
-            - soff: '0'
-            - soff_def: ''
-            - smod: 'kEDMA_ModuloDisable'
-            - dsize: 'kEDMA_TransferSize2Bytes'
-            - daddr_expr: '&lightValue'
-            - daddr_def: 'extern volatile uint16_t lightValue;'
-            - doff: '0'
-            - doff_def: ''
-            - dmod: 'kEDMA_ModuloDisable'
-            - nbytes: '2'
-            - MLconfig:
-              - offsetType: 'disabled'
-              - mloff: '0'
-            - enableChannelLinkMinor: 'false'
-            - linkedChannelMinor: '1775637469087'
-            - bandwidthControl: 'disabled'
-            - citer: '1'
-            - slast: '0'
-            - esda: 'false'
-            - eeop: 'false'
-            - enableChannelLinkMajor: 'false'
-            - linkedChannelMajor: '1775637469087'
-            - disableERQ: 'false'
-            - enableScatterGather: 'true'
             - sga: '1775637469097'
             - interruptSources: ''
         - constantTCD: 'false'
@@ -195,7 +161,7 @@ edma_config_t DMA0_config = {
   .enableDebugMode = false,
   .enableRoundRobinArbitration = false
 };
-AT_NONCACHEABLE_SECTION_ALIGN_INIT(edma_tcd_t DMA0_CH0_TCDs_config[2], 0x20U)
+AT_NONCACHEABLE_SECTION_ALIGN_INIT(edma_tcd_t DMA0_CH0_TCDs_config[1], 0x20U)
  = {
   {
     .TCD_REGS = {
@@ -206,23 +172,6 @@ AT_NONCACHEABLE_SECTION_ALIGN_INIT(edma_tcd_t DMA0_CH0_TCDs_config[2], 0x20U)
         .NBYTES = DMA_TCD_NBYTES_MLOFFNO_NBYTES(2UL) | DMA_TCD_NBYTES_MLOFFNO_SMLOE(0U) | DMA_TCD_NBYTES_MLOFFNO_DMLOE(0U),
         .SLAST = DMA_TCD_SLAST_SDA_SLAST_SDA(0UL),
         .DADDR = (uint32_t) &potValue,
-        .DOFF = (uint16_t) 0,
-        .CITER = DMA_TCD_CITER_ELINKNO_ELINK(0U) | DMA_TCD_CITER_ELINKNO_CITER(1U),
-        .DLAST_SGA = (uint32_t)(&DMA0_CH0_TCD1_CONFIG),
-        .CSR = DMA_TCD_CSR_START(0U) | DMA_TCD_CSR_INTMAJOR(0U) | DMA_TCD_CSR_INTHALF(0U) | DMA_TCD_CSR_DREQ(0U) | DMA_TCD_CSR_ESG(1U) | DMA_TCD_CSR_BWC(0U) | DMA_TCD_CSR_ESDA(0U) | DMA_TCD_CSR_EEOP(0U) | DMA_TCD_CSR_MAJORELINK(0U) | DMA_TCD_CSR_MAJORLINKCH(0),
-        .BITER = DMA_TCD_BITER_ELINKNO_ELINK(0U) | DMA_TCD_BITER_ELINKNO_BITER(1U)
-      }
-    }
-  },
-  {
-    .TCD_REGS = {
-      .edma4_tcd = {
-        .SADDR = (uint32_t) &(ADC0->RESFIFO[0]),
-        .SOFF = (uint16_t) 0,
-        .ATTR = DMA_TCD_ATTR_SMOD(kEDMA_ModuloDisable) | DMA_TCD_ATTR_SSIZE(kEDMA_TransferSize2Bytes) | DMA_TCD_ATTR_DMOD(kEDMA_ModuloDisable) | DMA_TCD_ATTR_DSIZE(kEDMA_TransferSize2Bytes),
-        .NBYTES = DMA_TCD_NBYTES_MLOFFNO_NBYTES(2UL) | DMA_TCD_NBYTES_MLOFFNO_SMLOE(0U) | DMA_TCD_NBYTES_MLOFFNO_DMLOE(0U),
-        .SLAST = DMA_TCD_SLAST_SDA_SLAST_SDA(0UL),
-        .DADDR = (uint32_t) &lightValue,
         .DOFF = (uint16_t) 0,
         .CITER = DMA_TCD_CITER_ELINKNO_ELINK(0U) | DMA_TCD_CITER_ELINKNO_CITER(1U),
         .DLAST_SGA = (uint32_t)(&DMA0_CH0_TCD0_CONFIG),
@@ -323,26 +272,9 @@ instance:
       - 0:
         - user_commandId: 'POT'
         - commandId: '1'
-        - chainedNextCommandNumber: '2'
+        - chainedNextCommandNumber: '0'
         - sampleChannelMode: 'kLPADC_SampleChannelSingleEndSideA'
         - channelNumber: 'A.0'
-        - enableChannelB_b: 'false'
-        - channelBNumber: 'B.0'
-        - enableAutoChannelIncrement: 'false'
-        - loopCount: '0'
-        - hardwareAverageMode: 'kLPADC_HardwareAverageCount1'
-        - sampleTimeMode: 'kLPADC_SampleTimeADCK3'
-        - hardwareCompareMode: 'kLPADC_HardwareCompareDisabled'
-        - hardwareCompareValueHigh: '0'
-        - hardwareCompareValueLow: '0'
-        - conversionResoultuionMode: 'kLPADC_ConversionResolutionStandard'
-        - enableWaitTrigger: 'false'
-      - 1:
-        - user_commandId: 'LIGHT'
-        - commandId: '2'
-        - chainedNextCommandNumber: '0'
-        - sampleChannelMode: 'kLPADC_SampleChannelSingleEndSideB'
-        - channelNumber: 'B.0'
         - enableChannelB_b: 'false'
         - channelBNumber: 'B.0'
         - enableAutoChannelIncrement: 'false'
@@ -388,25 +320,9 @@ const lpadc_config_t ADC0_config = {
   .FIFO0Watermark = 0UL,
   .FIFO1Watermark = 0UL
 };
-lpadc_conv_command_config_t ADC0_commandsConfig[2] = {
+lpadc_conv_command_config_t ADC0_commandsConfig[1] = {
   {
     .sampleChannelMode = kLPADC_SampleChannelSingleEndSideA,
-    .channelNumber = 0U,
-    .channelBNumber = 0U,
-    .chainedNextCommandNumber = 2,
-    .enableChannelB = false,
-    .enableAutoChannelIncrement = false,
-    .loopCount = 0UL,
-    .hardwareAverageMode = kLPADC_HardwareAverageCount1,
-    .sampleTimeMode = kLPADC_SampleTimeADCK3,
-    .hardwareCompareMode = kLPADC_HardwareCompareDisabled,
-    .hardwareCompareValueHigh = 0UL,
-    .hardwareCompareValueLow = 0UL,
-    .conversionResolutionMode = kLPADC_ConversionResolutionStandard,
-    .enableWaitTrigger = false
-  },
-  {
-    .sampleChannelMode = kLPADC_SampleChannelSingleEndSideB,
     .channelNumber = 0U,
     .channelBNumber = 0U,
     .chainedNextCommandNumber = 0,
@@ -442,8 +358,6 @@ static void ADC0_init(void) {
   LPADC_EnableFIFO0WatermarkDMA(ADC0_PERIPHERAL, true);
   /* Configure conversion command 1. */
   LPADC_SetConvCommandConfig(ADC0_PERIPHERAL, ADC0_POT, &ADC0_commandsConfig[0]);
-  /* Configure conversion command 2. */
-  LPADC_SetConvCommandConfig(ADC0_PERIPHERAL, ADC0_LIGHT, &ADC0_commandsConfig[1]);
   /* Configure trigger 0. */
   LPADC_SetConvTriggerConfig(ADC0_PERIPHERAL, 0, &ADC0_triggersConfig[0]);
 }
@@ -482,7 +396,7 @@ instance:
       - 1:
         - matchChannelPrefixId: 'Match_0'
         - matchChannel: 'kCTIMER_Match_0'
-        - matchValueStr: '10 ms'
+        - matchValueStr: '20 ms'
         - enableCounterReset: 'true'
         - enableCounterStop: 'false'
         - outControl: 'kCTIMER_Output_NoAction'
@@ -512,7 +426,7 @@ const ctimer_match_config_t CTIMER0_Match_3_config = {
   .enableInterrupt = false
 };
 const ctimer_match_config_t CTIMER0_Match_0_config = {
-  .matchValue = 9,
+  .matchValue = 19,
   .enableCounterReset = true,
   .enableCounterStop = false,
   .outControl = kCTIMER_Output_NoAction,

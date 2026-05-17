@@ -599,16 +599,6 @@
                   <data type="Version" maxValue="2.2.9">2.1.1</data>
                </feature>
             </dependency>
-            <dependency resourceType="Tool" resourceId="Pins" description="The Pins tool is required by the Peripherals tool, but it is disabled." problem_level="2" source="Peripherals">
-               <feature name="enabled" evaluation="equal">
-                  <data>true</data>
-               </feature>
-            </dependency>
-            <dependency resourceType="Tool" resourceId="Clocks" description="The Clocks tool is required by the Peripherals tool, but it is disabled." problem_level="2" source="Peripherals">
-               <feature name="enabled" evaluation="equal">
-                  <data>true</data>
-               </feature>
-            </dependency>
          </dependencies>
          <generated_project_files>
             <file path="board/peripherals.c" update_enabled="true"/>
@@ -633,11 +623,6 @@
                      </feature>
                   </dependency>
                   <dependency resourceType="PeripheralUnifiedSignal" resourceId="ADC0.adc_se.0A" description="Signal channel 0A is not routed." problem_level="1" source="Peripherals:BOARD_InitPeripherals">
-                     <feature name="routed" evaluation="">
-                        <data type="Boolean">true</data>
-                     </feature>
-                  </dependency>
-                  <dependency resourceType="PeripheralUnifiedSignal" resourceId="ADC0.adc_se.0B" description="Signal channel 0B is not routed." problem_level="1" source="Peripherals:BOARD_InitPeripherals">
                      <feature name="routed" evaluation="">
                         <data type="Boolean">true</data>
                      </feature>
@@ -714,27 +699,9 @@
                            <struct name="0">
                               <setting name="user_commandId" value="POT"/>
                               <setting name="commandId" value="1"/>
-                              <setting name="chainedNextCommandNumber" value="2"/>
+                              <setting name="chainedNextCommandNumber" value="0"/>
                               <setting name="sampleChannelMode" value="kLPADC_SampleChannelSingleEndSideA"/>
                               <setting name="channelNumber" value="A.0"/>
-                              <setting name="enableChannelB_b" value="false"/>
-                              <setting name="channelBNumber" value="B.0"/>
-                              <setting name="enableAutoChannelIncrement" value="false"/>
-                              <setting name="loopCount" value="0"/>
-                              <setting name="hardwareAverageMode" value="kLPADC_HardwareAverageCount1"/>
-                              <setting name="sampleTimeMode" value="kLPADC_SampleTimeADCK3"/>
-                              <setting name="hardwareCompareMode" value="kLPADC_HardwareCompareDisabled"/>
-                              <setting name="hardwareCompareValueHigh" value="0"/>
-                              <setting name="hardwareCompareValueLow" value="0"/>
-                              <setting name="conversionResoultuionMode" value="kLPADC_ConversionResolutionStandard"/>
-                              <setting name="enableWaitTrigger" value="false"/>
-                           </struct>
-                           <struct name="1">
-                              <setting name="user_commandId" value="LIGHT"/>
-                              <setting name="commandId" value="2"/>
-                              <setting name="chainedNextCommandNumber" value="0"/>
-                              <setting name="sampleChannelMode" value="kLPADC_SampleChannelSingleEndSideB"/>
-                              <setting name="channelNumber" value="B.0"/>
                               <setting name="enableChannelB_b" value="false"/>
                               <setting name="channelBNumber" value="B.0"/>
                               <setting name="enableAutoChannelIncrement" value="false"/>
@@ -811,7 +778,7 @@
                            <struct name="1">
                               <setting name="matchChannelPrefixId" value="Match_0"/>
                               <setting name="matchChannel" value="kCTIMER_Match_0"/>
-                              <setting name="matchValueStr" value="10 ms"/>
+                              <setting name="matchValueStr" value="20 ms"/>
                               <setting name="enableCounterReset" value="true"/>
                               <setting name="enableCounterStop" value="false"/>
                               <setting name="outControl" value="kCTIMER_Output_NoAction"/>
@@ -884,45 +851,6 @@
                                     <setting name="dsize" value="kEDMA_TransferSize2Bytes"/>
                                     <setting name="daddr_expr" value="&amp;potValue"/>
                                     <setting name="daddr_def" value="extern volatile uint16_t potValue;"/>
-                                    <setting name="doff" value="0"/>
-                                    <setting name="doff_def" value=""/>
-                                    <setting name="dmod" value="kEDMA_ModuloDisable"/>
-                                    <setting name="nbytes" value="2"/>
-                                    <struct name="MLconfig">
-                                       <setting name="offsetType" value="disabled"/>
-                                       <setting name="mloff" value="0"/>
-                                    </struct>
-                                    <setting name="enableChannelLinkMinor" value="false"/>
-                                    <setting name="linkedChannelMinor" value="1775637469087"/>
-                                    <setting name="bandwidthControl" value="disabled"/>
-                                    <setting name="citer" value="1"/>
-                                    <setting name="slast" value="0"/>
-                                    <setting name="esda" value="false"/>
-                                    <setting name="eeop" value="false"/>
-                                    <setting name="enableChannelLinkMajor" value="false"/>
-                                    <setting name="linkedChannelMajor" value="1775637469087"/>
-                                    <setting name="disableERQ" value="false"/>
-                                    <setting name="enableScatterGather" value="true"/>
-                                    <setting name="sga" value="1775637469092"/>
-                                    <set name="interruptSources">
-                                       <selected/>
-                                    </set>
-                                 </struct>
-                                 <struct name="1">
-                                    <struct name="TCD_REGS">
-                                       <struct name="edma4_tcd"/>
-                                    </struct>
-                                    <setting name="uid" value="1775637469092"/>
-                                    <setting name="tcdID" value="CH0_TCD1"/>
-                                    <setting name="ssize" value="kEDMA_TransferSize2Bytes"/>
-                                    <setting name="saddr_expr" value="&amp;(ADC0-&gt;RESFIFO[0])"/>
-                                    <setting name="saddr_def" value=""/>
-                                    <setting name="soff" value="0"/>
-                                    <setting name="soff_def" value=""/>
-                                    <setting name="smod" value="kEDMA_ModuloDisable"/>
-                                    <setting name="dsize" value="kEDMA_TransferSize2Bytes"/>
-                                    <setting name="daddr_expr" value="&amp;lightValue"/>
-                                    <setting name="daddr_def" value="extern volatile uint16_t lightValue;"/>
                                     <setting name="doff" value="0"/>
                                     <setting name="doff_def" value=""/>
                                     <setting name="dmod" value="kEDMA_ModuloDisable"/>

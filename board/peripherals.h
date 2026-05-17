@@ -46,16 +46,12 @@ extern "C" {
 #define DMA0_CH0_DMA_CHANNEL 0
 /* TCD structure index 0 definition */
 #define DMA0_CH0_TCD0_CONFIG DMA0_CH0_TCDs_config[0]
-/* TCD structure index 1 definition */
-#define DMA0_CH0_TCD1_CONFIG DMA0_CH0_TCDs_config[1]
 /* Definition of peripheral ID */
 #define VREF0_PERIPHERAL VREF0
 /* Alias for ADC0 peripheral */
 #define ADC0_PERIPHERAL ADC0
 /* Command 1 - POT */
 #define ADC0_POT 1U
-/* Command 2 - LIGHT */
-#define ADC0_LIGHT 2U
 /* Definition of peripheral ID */
 #define CTIMER0_PERIPHERAL CTIMER0
 /* Timer tick frequency in Hz (input frequency of the timer) */
@@ -168,12 +164,10 @@ extern "C" {
 extern edma_config_t DMA0_config;
 /* Destination address declaration */
 extern volatile uint16_t potValue;
-/* Destination address declaration */
-extern volatile uint16_t lightValue;
 /* TCD configuration */
-AT_NONCACHEABLE_SECTION_ALIGN_INIT(extern edma_tcd_t DMA0_CH0_TCDs_config[2], 0x20U);
+AT_NONCACHEABLE_SECTION_ALIGN_INIT(extern edma_tcd_t DMA0_CH0_TCDs_config[1], 0x20U);
 extern const lpadc_config_t ADC0_config;
-extern lpadc_conv_command_config_t ADC0_commandsConfig[2];
+extern lpadc_conv_command_config_t ADC0_commandsConfig[1];
 extern lpadc_conv_trigger_config_t ADC0_triggersConfig[1];
 extern const ctimer_config_t CTIMER0_config;
 extern const ctimer_match_config_t CTIMER0_Match_3_config;

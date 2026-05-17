@@ -21,8 +21,8 @@
 #define DIR_RIGHT (1U << 7)
 
 /* APP 1 defines */
-#define MAX_DELAY 200
-#define MIN_DELAY 10
+#define MAX_DELAY 100
+#define MIN_DELAY 20
 #define TIMER_DELAY_DONE (1U << 1)
 #define CHANGED_DIRECTION (1U << 2)
 

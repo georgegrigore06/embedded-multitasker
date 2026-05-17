@@ -4,7 +4,7 @@
 #include "main.h"
 
 /* DMA Buffers for ADC values */
-volatile uint16_t potValue, lightValue;
+volatile uint16_t potValue;
 
 uint8_t bits_counter(uint8_t bits)
 {
@@ -29,6 +29,11 @@ uint8_t bit_position(uint8_t bits)
 	return counter;
 }
 
+uint32_t map(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max)
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
 /* Main Menu
 	- Waits for user input and activates an app task using an event group through task notifications
 	- Responsible for real-time synchronization between apps
@@ -36,7 +41,6 @@ uint8_t bit_position(uint8_t bits)
 void main_menu_task(void *parameter)
 {
 	uint8_t active_app = 0;
-	CTIMER_StartTimer(CTIMER0);
 	while(1)
 	{
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
@@ -73,40 +77,33 @@ void oled_task(void *parameter)
 	bool ok = 1;
 	uint8_t current_dir = RIGHT;
 	sendOLED(nxp_logo_frame, 1024, OLED_DATA);
+	vTaskDelay(1000 / portTICK_PERIOD_MS);
+	resetOLED();
+	printfOLED("App1: DP1\nApp2: DP2\nApp3: DP3");
 	while(1)
 	{
 		xTaskNotifyWait(notifBits, ULONG_MAX, &notifBits, portMAX_DELAY);
-		if(!(notifBits & APP_3)) ok=1;
+		if((notifBits & (APP_3 | DIR_UP | DIR_DOWN | DIR_LEFT | DIR_RIGHT)) ^ notifBits) ok=1;
 		if(ok) resetOLED();
 		if(notifBits == APP_ERROR)
 		{
-			ok = 1;
 			printfOLED("Error\nTurn off one switch");
 		}
 		else if(notifBits == 0)
 		{
-			ok = 1;
-			sendOLED(nxp_logo_frame, 1024, OLED_DATA);
+			printfOLED("App1: DP1\nApp2: DP2\nApp3: DP3");
 		}
 		else if(notifBits & APP_1)
 		{
-			ok = 1;
 			printfOLED("Press SW1 to change  LEDs light direction.\nReset all DP switchesto go back to the    main menu.");
 		}
 		else if(notifBits & APP_2)
 		{
-			ok = 1;
 			printfOLED("Use rotary encoder tochange LED direction.\nReset all DP switchesto go back to the    main menu.");
 		}
 		else if(notifBits & APP_3)
 		{
-			if(ok)
-			{
-				fillOLED(0x00);
-				setPage(0);
-				setSeg(0);
-				ok = 0;
-			}
+			ok=0;
 			if(notifBits & DIR_LEFT) current_dir = LEFT;
 			else if(notifBits & DIR_RIGHT) current_dir = RIGHT;
 			else if(notifBits & DIR_UP) current_dir = UP;
@@ -125,27 +122,34 @@ void app_1_task(void *parameter) {
 	/* Logic implementation for switching LEDs */
 	uint8_t current_led = 0; 
 	uint8_t old_led = 0; 
-	uint32_t delay = 0;
-	uint32_t notifBits;
+	uint32_t notifBits = 0;
 	bool direction = 0;
+	ctimer_match_config_t matchConfig = CTIMER0_Match_0_config;
+	uint32_t delay = matchConfig.matchValue;
 	while(1)
   	{
 		xTaskNotifyWait(0, TIMER_DELAY_DONE | CHANGED_DIRECTION | DISPLAY, &notifBits, portMAX_DELAY);
 		if(notifBits & STATUS_ON)
 		{
+			// CTIMER_DisableInterrupts(CTIMER0, kCTIMER_Match0InterruptEnable);
+			CTIMER_StopTimer(CTIMER0);
 			if(notifBits & DISPLAY) {
 				xTaskNotify(oled_handler, APP_1, eSetBits);
 			}
 			if(notifBits & CHANGED_DIRECTION) direction = !direction;
-			delay = (potValue >> 7);		
-			if(delay < 10) delay = 10;
-			CTIMER0->MR[CTIMER0_MATCH_0_CHANNEL] = delay;
-			if(CTIMER0->TC > delay) CTIMER_Reset(CTIMER0);
+			delay = map((uint32_t) potValue, 0, UINT16_MAX, MIN_DELAY, MAX_DELAY);
+			if(abs(matchConfig.matchValue - delay) > 10)
+			{
+				matchConfig.matchValue = delay;
+				CTIMER_SetupMatch(CTIMER0, CTIMER0_MATCH_0_CHANNEL, &matchConfig);
+				CTIMER_Reset(CTIMER0);
+			} 	
 			GPIO_PinWrite(LEDs[old_led].gpio, LEDs[old_led].pin, 0);
 			GPIO_PinWrite(LEDs[current_led].gpio, LEDs[current_led].pin, 1);
 			old_led = current_led;
 			if(direction) current_led = (current_led == 0) ? (num_leds - 1) : (current_led - 1);
 			else current_led = (current_led+1)%num_leds;
+			CTIMER_StartTimer(CTIMER0);
 		}
 		else
 		{
