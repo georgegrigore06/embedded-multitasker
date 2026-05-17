@@ -3,17 +3,17 @@ This project is made for learning purposes with no IDE, meaning that it's built 
 Vendor tools such as MCUXPresso Config Tools and SDK drivers are still used for easier configuration.  
 It's a remake of the **NXP MCX Embedded Programming** Course final project which implements **FreeRTOS**, **Direct Memory Access** and various optimization changes on the *FRDM-MCXN947* board.  
 ## ***How it works?***
+The application logic code is in `src/main.c`. 
+The OLED driver code is in `src/oled.c`.  
+### OLED Control  
+It implements an updated version of the OLED drivers, modernizing them to utilize DMA over the I2C peripheral. Instead of requiring the CPU to manually push every byte of the frame buffer to the screen, the driver configures the DMA controller to handle the transfer autonomously in the background. It also integrates task handling to safely manage display updates, ensuring that writing new frame data does not block the processor or disrupt the timing of other system operations.  
+
 ### Main Menu  
 The system utilizes the MCXN947 I/O Shield **DP Switches** to toggle between three distinct applications. By having one task (named Main Menu), with the highest priority, wake-up everytime a DP Switch has changed it's state, it can safely choose on what task (application) should be suspended or resumed based on the current input. It also verifies if two or more applications are set ON, and sends an error, allowing the system to work only when one application is activated at a time. 
-***Task Notifications*** are heavily used for inter-task communication and setting flags.
+***Task Notifications*** are heavily used for inter-task communication and setting flags. 
 
 https://github.com/user-attachments/assets/86f0fe30-f880-4ead-ac16-d8ba3ea6afd0
 
-
-
-### OLED Control  
-
-It implements an updated version of the OLED drivers, modernizing them to utilize DMA over the I2C peripheral. Instead of requiring the CPU to manually push every byte of the frame buffer to the screen, the driver configures the DMA controller to handle the transfer autonomously in the background. It also integrates task handling to safely manage display updates, ensuring that writing new frame data does not block the processor or disrupt the timing of other system operations.
 
 ### 1. LED Ring Speed Control - `DP Switch 1`
 &emsp; Peripherals used:  
