@@ -1,10 +1,15 @@
 # Description
 This project is made for learning purposes with no IDE, meaning that it's built from scratch with custom **startup code**, **linker script** and **CMake** files to understand how *building*, *flashing* and *booting* works on a microcontroller. Also, ***Real-Time Operating Systems*** are a must-know in embedded programming.  
 Vendor tools such as MCUXPresso Config Tools and SDK drivers are still used for easier configuration.  
-It's a remake of the **NXP MCX Embedded Programming** Course final project which implements **FreeRTOS**, **DMA** and various optimization changes on the *FRDM-MCXN947* board.  
+It's a remake of the **NXP MCX Embedded Programming** Course final project which implements **FreeRTOS**, **Direct Memory Access** and various optimization changes on the *FRDM-MCXN947* board.  
 ## ***How it works?***
-The system utilizes the MCXN947 I/O Shield **DP Switches** to toggle between three distinct applications. By having one task (named Main Menu), with the highest priority, wake-up everytime a DP Switch has changed it's state, it can safely choose on what task (application) should be suspended or resumed based on the current input. It also verifies if two or more applications are set ON, and sends an error, allowing the system to work only when one application is activated at a time.  
-***Task Notifications*** are heavily used for inter-task communication and working the CPU only when it needs to.
+### Main Menu  
+The system utilizes the MCXN947 I/O Shield **DP Switches** to toggle between three distinct applications. By having one task (named Main Menu), with the highest priority, wake-up everytime a DP Switch has changed it's state, it can safely choose on what task (application) should be suspended or resumed based on the current input. It also verifies if two or more applications are set ON, and sends an error, allowing the system to work only when one application is activated at a time. 
+***Task Notifications*** are heavily used for inter-task communication and setting flags.
+
+### OLED Control  
+
+It implements an updated version of the OLED drivers, modernizing them to utilize DMA over the I2C peripheral. Instead of requiring the CPU to manually push every byte of the frame buffer to the screen, the driver configures the DMA controller to handle the transfer autonomously in the background. It also integrates task handling to safely manage display updates, ensuring that writing new frame data does not block the processor or disrupt the timing of other system operations.
 
 ### 1. LED Ring Speed Control - `DP Switch 1`
 &emsp; Peripherals used:  
@@ -12,8 +17,7 @@ The system utilizes the MCXN947 I/O Shield **DP Switches** to toggle between thr
 &emsp;   **LED Ring** - Displays the current speed pattern through LED output.  
 &emsp;   **Button** - Changes rotation direction. 
 
-In the background, ADC conversion for the potentiometer is activated by wiring a CTIMER0 Match 3 with a fixed time of 10 ms to the respective peripheral. After a successful conversion, the value is sent to a variable `potValue` through DMA.  
-The Application 1 Task is woken up everytime CTIMER0 reaches Match 0 value and it updates the match value depending on how the potentiometer is currently set. Maximum delay is 100 ms and minimum delay is 20 ms.  
+Hardware timing is managed by CTIMER0 Match 3, which triggers an ADC conversion every 10 ms. Upon completion, the ADC uses DMA to stream the raw data directly into the `potValue` variable without CPU intervention. The core application task wakes up whenever CTIMER0 reaches the CTIMER0 Match 0 threshold to read this variable. It then dynamically scales the next Match 0 interval, clamping the operational delay between 20 ms and 100 ms based on the potentiometer position.  
 
 ### 2. Rotary Encoder State Machine - `DP Switch 2`
 &emsp; Peripherals used:  
